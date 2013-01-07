@@ -1,0 +1,6 @@
+name = BOSA Sales
+description = Sales report
+core = 7.x
+version = "7.x-0.1-dev"
+package = BOSA
+dependencies[] = commerce

@@ -1,0 +1,278 @@
+<?php
+/*
+ * Implements hook_form_FORM_ID_alter
+ *
+ * Unsetting standard add to cart form, when the product is set
+ * to be sold with 2 prices.
+ */
+function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
+
+  if(strstr($form['#id'], 'commerce-cart-add-to-cart-form'))
+  {
+    $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
+    
+    // if second price fields are set
+    if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
+    {
+    $price = commerce_currency_format($commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'], "DKK");
+      // use the extra data and add a new button
+      unset($form['submit']);
+      unset($form['quantity']);
+
+      $form['quantity'] = array(
+        '#type' => 'textfield',
+        '#weight' => 85,
+        '#default_value' => 1,
+        '#datatype' => 'number',
+      );
+
+      $form['submit'] = array(
+        '#type' => 'button',
+        '#weight' => 90,
+        '#value' => t('Add to cart'),
+        '#ajax' => array(
+          'callback' => 'bosa_lineitem_add_1st_price_to_cart_submit',
+          'progress' => array('type' => 'throbber', 'message' => ''),
+          'wrapper' => 'dc-cart-ajax-form-wrapper',
+        ),
+      );
+      $form['text'] = array(
+        '#type' => 'item',
+        '#weight' => 92,
+        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$price.'</div>' ,
+      );
+
+      $form['quantity2'] = array(
+        '#type' => 'textfield',
+        '#weight' => 95,
+        '#default_value' => 1,
+          '#datatype' => 'integer',
+      );
+
+      $form['submit2'] = array(
+        '#type' => 'button',
+        '#weight' => 100,
+        '#value' => t('Add to cart 2'),
+        '#ajax' => array(
+          'callback' => 'bosa_lineitem_add_2nd_price_to_cart_submit',
+          'wrapper' => 'dc-cart-ajax-form-wrapper',
+          'progress' => array('type' => 'throbber', 'message' => ''),
+          'method' => 'replace',
+        ),
+        '#suffix' => '<div id="refresh"></div>',
+      );
+
+    }
+    if ($commerce_product->type == "offer_extras_custom")
+    {
+      unset($form['submit']);
+      $form['submit'] = array(
+        '#type' => 'button',
+        '#weight' => 120,
+        '#value' => t('Add to cart'),
+        '#ajax' => array(
+          'callback' => 'bosa_lineitem_add_extras_to_cart_submit',
+          'progress' => array('type' => 'throbber', 'message' => ''),
+          'wrapper' => 'dc-cart-ajax-form-wrapper',
+        ),
+      );
+    }
+    return $form;
+  }
+}
+ 
+/*
+ * Callback function for add to cart form
+ * used as wrapper for 'commerce_cart_add_to_cart_form_submit'
+ */
+function bosa_lineitem_add_1st_price_to_cart_submit(&$form, &$form_state){
+  commerce_cart_add_to_cart_form_submit($form, $form_state); 
+  
+  return '<script type="text/javascript">location.reload()</script>';
+}
+
+/**
+ * Callback function adds line item with 2nd price set, to shopping cart.
+ * Also sets comment on line item, used when the price is recalculated
+ * by RULES
+ * This function is basicly just a rewrite of 'commerce_cart_add_to_cart_form_submit'
+ * Return is markup, JS, that refreshes the current page. Jumping through 
+ * hoops here....
+ *
+ * @access public
+ * @param
+ *  $form
+ *  $form_state
+ * @return 
+ *  string
+ **/
+function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
+  
+  $product_id = $form_state['values']['product_id'];
+  $product = commerce_product_load($product_id);
+  
+  $line_item = commerce_product_line_item_new($product, $form_state['values']['quantity2'], 0);
+
+  field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
+
+  // loading the lineitem into an entity wrapper 
+  $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+  $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+
+  // updating the base price
+  $line_item_wrapper->commerce_unit_price->data = array(
+    'components' => array(
+      0 => array(
+        'name' => 'base_price',
+        'price' => array(
+          'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
+          'currency_code' => 'dkk'
+        ),
+      ),
+    ),
+  );
+
+  // we want to be able to see that this product has been sold with the other price
+  // this is used later on when we set the price again
+  $line_item_wrapper->field_line_item_comment = 'Anden pris';  
+
+  commerce_line_item_save($line_item);
+  // save the lineitem to the order
+  $form_state['line_item'] = commerce_cart_product_add(
+    $form_state['values']['uid'],
+    $line_item,
+    0
+  );
+
+  //commerce_cart_add_to_cart_form_submit($form, $form_state); 
+  return '<script type="text/javascript">location.reload()</script>';
+}
+
+/**
+ * Callback function adds line item to cart with reference product
+ *
+ * @access public
+ * @param Parameter
+ * @return something
+ **/
+function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
+
+  $nodeid = explode('/', $form['#action']);
+  global $user;
+  $order = commerce_cart_order_load($user->uid);
+  $node = node_load($nodeid[2]);
+
+  $cart_products = array();
+  foreach ($order->commerce_line_items[LANGUAGE_NONE] as $lineitem)
+  {
+    $line_item_entity = commerce_line_item_load($lineitem['line_item_id']);
+    $line_item_product_id =  $line_item_entity->commerce_product[LANGUAGE_NONE][0]['product_id'];
+
+    if(in_array($line_item_product_id, $cart_products))
+    {
+      continue;
+    }
+    
+    $cart_products[] =  $line_item_product_id;
+  }
+  $referenced_products = array(); 
+  foreach($node->field_reference[LANGUAGE_NONE] as $reference)
+  {
+    $product_entity = commerce_product_load($reference['product_id']);
+    if( $product_entity->type == "offer" )
+    {
+      $referenced_products[] = $reference['product_id'];
+    }
+  }
+
+  $result = array_intersect($cart_products, $referenced_products);
+  
+  switch( count($result) )
+  {
+    case(0):
+      $return = 'Du har ikke valgt en aktivitet der passer til dette tilkøb<br /><a href="javascript: location.reload()">Tilbage</a>';
+      break;
+    
+    case(1):
+      $product_id_ref = reset( array_intersect($cart_products, $referenced_products));
+
+      $product_id = $form_state['values']['product_id'];
+      $product = commerce_product_load($product_id);
+
+      $line_item = commerce_product_line_item_new($product, 1, 0, array(), 'product_comment');
+
+      field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
+
+      // loading the lineitem into an entity wrapper 
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+      //$line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+
+      // we want to be able to see that this product has been sold with the other price
+      // this is used later on when we set the price again
+      $line_item_wrapper->field_line_item_ref = $product_id_ref;  
+
+      commerce_line_item_save($line_item);
+      // save the lineitem to the order
+      $form_state['line_item'] = commerce_cart_product_add(
+        $form_state['values']['uid'],
+        $line_item,
+        0
+      );
+
+      //commerce_cart_add_to_cart_form_submit($form, $form_state); 
+      $return = '<script type="text/javascript">location.reload()</script>';
+      break;
+    
+    default:
+      $return = 'Du kan ikke købe tilvalgsprodukter hvis du har valgt mere end en dato på samme aktivitet<br /><a href="javascript: location.reload()">Tilbage</a>';
+      
+      break;
+  }
+  return $return;
+}
+
+
+/**
+ * Reset the product price, when the item has been sold with the 2nd price
+ * chosen.
+ * Function is called by RULE "calculate_sell_price".
+ *
+ * @access public
+ * @param 
+ *   $line_item - commerce line item passed by RULES
+ * @return 
+ *   nothing
+ **/
+function bosa_lineitem_calculate_sell_price($line_item){
+  if(isset($line_item->field_line_item_comment[LANGUAGE_NONE][0]))
+  {
+    if($line_item->field_line_item_comment[LANGUAGE_NONE][0]['value'] == 'Anden pris')
+    {
+      $product = commerce_product_load_by_sku($line_item->line_item_label);
+
+      if(isset($product->field_2nd_price[LANGUAGE_NONE][0]['amount']))
+      {
+        // loading the lineitem into an entity wrapper
+        $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+        
+        // updating the unit price
+        $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+
+        // updating the base price
+        $line_item_wrapper->commerce_unit_price->data = array(
+          'components' => array(
+            0 => array(
+              'name' => 'base_price',
+              'price' => array(
+                'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
+                'currency_code' => 'DKK'
+              ),
+            ),
+          ),
+        );
+        commerce_line_item_save($line_item);
+      }
+    }
+  }
+}
+

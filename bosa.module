@@ -1,0 +1,255 @@
+<?php
+/**
+ * bosa module
+ * Implements custom functionality for commerce for use with visitdanmark installation
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @version $0.1
+ * @copyright 2012 bellcom open source aps
+ **/
+
+
+/*
+ * Implements hook_cron
+ */
+function bosa_cron() {
+  /*
+  * Automated abandoned carts cleanup
+  */
+
+  // We want to fetch the carts older than 36hours
+  $expiredOrder = time() - '172800';
+
+  // Prepare statement to get order_ids
+  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status = :status AND changed < :changed", array(
+    ':status' => 'cart',
+    ':changed' => $expiredOrder,
+  ));
+
+  // Fetch
+  $oldOrders = $oldOrdersStmt->fetchAll();
+
+  // Construct array with order_ids
+  $oldOrderIds = array();
+  foreach ($oldOrders as $oldOrder)
+  {
+    $oldOrderIds[] = $oldOrder->order_id;
+  }
+
+  // Use commerce_order_delete_multiple function to cleanly delete the orders
+  commerce_order_delete_multiple($oldOrderIds);
+
+  // Run function that prepares most popular offers  
+  bosa_popular_offers_cron();
+}
+
+/*
+ * Implements hook block_info
+ */
+function bosa_block_info() {
+  $blocks['bosa'] = array(
+    'info' => t('Popular offers'),
+  );
+
+  return $blocks;
+}
+
+/*
+ * Implements hook_block_view()
+ */
+function bosa_block_view($delta = '') {
+  $content = bosa_popular_offers();
+
+  switch ($delta) {
+    case 'bosa':
+      $block['subject'] = t('bosa - popular offers');
+      $block['content'] = $content;
+      break;
+  }
+  return $block;
+}
+
+/*
+ * Function for calculating the most sold, active activity
+ * @params
+ *  none
+ * @return
+ *  none
+ * 
+ * saves resulting html to drupal cache
+ */
+function bosa_popular_offers_cron() {
+  // Get most popular events, which are still active
+  $lineItemsStmt = db_query("SELECT n.title, l.quantity 
+                             FROM 
+                              `commerce_product` p,
+                              `field_data_field_reference` r,
+                              `field_data_field_offer_dato` d,
+                              `node` n,
+                              `commerce_line_item` l
+                            WHERE r.field_reference_product_id = p.product_id
+                            AND
+                            n.nid = r.entity_id
+                            AND
+                            p.type = 'offer'
+                            AND
+                            p.sku = l.line_item_label
+                            AND 
+                            d.entity_id = p.product_id
+                            AND
+                            d.field_offer_dato_value < NOW() ");
+
+  // Fetch
+  $lineItems = $lineItemsStmt->fetchAll();
+
+  // calculate the amount sold of each activity
+  $lineItemArray = array();
+  foreach ($lineItems as $lineItem)
+  {
+    $v = FALSE;
+    foreach ($lineItemArray as $key => $val)
+    {
+      if ($key == $lineItem->title)
+      {
+        $v = TRUE;
+      }
+    }
+
+    if ($v === TRUE) 
+    {
+      $lineItemArray[$lineItem->title]['qty'] += round($lineItem->quantity);
+    } 
+    else 
+    {
+      $lineItemArray[$lineItem->title]['qty'] = round($lineItem->quantity);
+    }
+  }
+
+  // sort the array
+  arsort($lineItemArray);
+  
+  // we only want a list of the 6 most popular
+  $lineItemArray = array_slice($lineItemArray, 0, 6);
+
+  // build html for use in block
+  $content = "<div class=\"popular-header\">Mest solgte events</div>";
+  $content .= "<div class=\"popular-offers\">";
+  foreach ($lineItemArray as $key => $val)
+  {
+    $nodeIdStmt = db_query("SELECT nid FROM {node} WHERE title = :title", array(':title' => $key,));
+    $nodeId = $nodeIdStmt->fetch();
+
+
+    $nodeImageStmt = db_query("SELECT f.uri FROM `file_managed`f, `field_revision_field_offer_images`i WHERE 
+      f.fid = i.field_offer_images_fid
+      AND 
+      i.entity_id = :nid", array(':nid' => $nodeId->nid,));
+
+    $nodeImage = $nodeImageStmt->fetch();
+    $url = url(drupal_get_path_alias( 'node/' . $nodeId->nid));
+
+    $content .= "<div class=\"row\">";
+    $content .=  "<a href=" .$url. "><img class=\"popular\" src=\"".image_style_url('popular_offers', $nodeImage->uri)."\"/>".$key."</a>";
+    $content .= "</div>";
+  }
+  $content .= "</div>";
+
+  // Save chunck for block use.
+  cache_set('bosa_popular_offers', $content);
+}
+
+/*
+ * Function used to retrieve popular offers html from drupal cache
+ * @return
+ *  string with formatted html for use in BLOCK 
+ */
+function bosa_popular_offers() {
+  $content = cache_get('bosa_popular_offers');
+  if (!isset($content->data)){
+    bosa_popular_offers_cron();
+  }
+  return $content->data;
+}
+
+/**
+ * Function used to calculate and save stock updates
+ *
+ * Uses $_SESSION['bosa'] to temporarily store info about 
+ * stock changes
+ * The function can be called multiple times during updating
+ * an order, therefore the function appends the order id 
+ * array accordingly.
+ *
+ * @access public
+ * @param 
+ *  $after: object, containing lineitem info
+ *  $before: object, containing lineitem info
+ *  $arg: argument for action
+ * @return
+ *  nothing
+ *
+ **/
+function bosa_stock_adjust($after, $before, $arg) {
+//  error_log(print_r($after, 1));
+  if (empty($after->log)) {
+//    error_log("update stock");
+    $order = $after->order_id;
+    $sku = $after->line_item_label;
+    switch ($arg) {
+      case "update":
+        $qty = (int) -($after->quantity - round($before->quantity));
+        break;
+      
+      case "delete":
+        $qty = (int) round($after->quantity);
+        break;
+      
+      case "add":
+        $qty = (int) -$after->quantity;
+        break;
+    }
+
+    if(!isset($_SESSION['bosa'])){
+      $_SESSION['bosa'] = array();
+    }
+    if(!isset( $_SESSION['bosa'][$order])) {
+      $_SESSION['bosa'][$order] = array();
+    }
+    $i = sizeof($_SESSION['bosa'][$order]);
+    $i++;
+    $_SESSION['bosa'][$order][$i] = array('sku' => $sku, 'qty' => $qty);
+
+  }
+
+}
+
+/**
+ * Function for saving calculated stockchanges
+ *
+ * Uses $_SESSION['bosa'] array, if the array
+ * contains an array with the current commerce order
+ * id the stock update is saved. Afterwards the array
+ * with the order id is unset.
+ *
+ * @access public
+ * @param 
+ *  $arg: object containing commerce order
+ * @return
+ *  nothing
+ **/
+function bosa_stock_adjust_save($arg) {
+  if(isset($_SESSION['bosa'][$arg->order_id])){
+    foreach($_SESSION['bosa'][$arg->order_id] as $item){
+      $product = commerce_product_load_by_sku($item['sku']);
+
+      $wrapper = entity_metadata_wrapper('commerce_product', $product);
+
+      $new_stock = $wrapper->commerce_stock->value() + intval($item['qty']);
+      $wrapper->commerce_stock->set($new_stock);
+      $result = $wrapper->save();
+      error_log("updating".$item['sku']."to".$new_stock);
+    }
+  } 
+  unset($_SESSION['bosa'][$arg->order_id]);
+}
+

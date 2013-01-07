@@ -1,0 +1,161 @@
+<?php
+/**
+ * bosa_offer_mail module
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @version $0.1
+ * @copyright 2012 bellcom open source aps
+ **/
+
+
+/*
+ * Implements hook_menu()
+ */
+function bosa_offer_mail_menu() {
+  $items['aktiviteter_pdf'] = array(
+   'page callback' => 'bosa_offer_mail_pdf',
+   'access arguments' => array('access content'), 
+  );
+  return $items;
+}
+
+/**
+ * page callback for menu hook
+ *
+ * @access public
+ * @param 
+ *  int $order_id, order id from commerce
+ *  int $arg, profile_id and order created time
+ * @return 
+ *  _bosa_offer_mail_create_pdf callback
+ **/
+function bosa_offer_mail_pdf($order_id, $arg){
+  
+  $order = commerce_order_load($order_id);
+  $key = $order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id'];
+  $key .= $order->created;
+
+  if($key == $arg)
+  {
+    return _bosa_offer_mail_create_pdf($order);
+  }
+}
+
+/**
+ * create pdf containing using dompdf
+ *
+ * @access public
+ * @param 
+ *  object $order, commerce order entity
+ * @return
+ *  
+ **/
+function _bosa_offer_mail_create_pdf($order){
+  require_once views_pdf_get_library('dompdf') . '/dompdf_config.inc.php';
+  global $base_url;
+
+  $node_ids = bosa_offer_mail_get_node_ids($order->commerce_line_items[LANGUAGE_NONE]);
+  
+  $id_url = implode('/', $node_ids);
+  $view = '<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="'.$base_url.'/sites/all/modules/bosa_offer_mail/css/pdf.css">
+        <meta http-equiv="content-type" content="text/html;charset=utf-8">
+        </head>
+        <body>';
+
+  $view .= '<div class="ticket title">Billet information</div><div class="ticket info">Medbring denne kvittering ved fremmøde på aktiviteten.</div>    <table>
+      <tr>
+      <td>
+        Antal:
+        </td>
+        <td>
+        Produkt:
+        </td>
+        <td>
+        Kommentar:
+        </td>
+        <td>
+        Tidspunkt:
+        </td>
+        </tr>';
+
+  foreach($order->commerce_line_items[LANGUAGE_NONE] as $line_item_id)
+  {
+    $line_item_entity = commerce_line_item_load($line_item_id['line_item_id']);
+
+    $commerce_product_entity = commerce_product_load($line_item_entity->commerce_product[LANGUAGE_NONE][0]['product_id']);
+
+    $view .= '
+        <tr>
+        <td>'.
+        $line_item_entity->quantity
+        .'</td>
+        <td>'.
+        $commerce_product_entity->title
+        .'</td>
+        <td>'.
+        $line_item_entity->field_line_item_comment[LANGUAGE_NONE][0]['value']
+        .'</td>
+        <td>'.
+        $commerce_product_entity->field_offer_dato[LANGUAGE_NONE][0]['value']
+        .'</td>
+        </tr>';
+  }
+  $view .= '</table>';
+
+  foreach($node_ids as $node_id)
+  {
+    $view .= views_embed_view('offer_additionlal_info', 'page_1', $node_id);
+  }
+
+  $view .= '</body></html>';
+
+
+  //$view = file_get_contents('http://lillebaeltwaters.bellcom.dk/offer_mail_view/' . $id_url); 
+
+  $view = str_replace('src="http://lillebaeltwaters.bellcom.dk/', 'src="', $view);
+
+  //print $view;
+
+  $dompdf = new DOMPDF();
+
+  $dompdf->load_html($view);
+  $dompdf->set_paper("a4","portrait");
+  $dompdf->render();
+
+  $dompdf->stream('Ordre_'.$order->order_id);
+
+}
+
+
+function bosa_offer_mail_get_node_ids($line_items) {
+  $node_ids = array();
+
+  foreach($line_items as $line_item)
+  {
+    // load lineitem to get line_item_label
+    $line_item_entity = commerce_line_item_load($line_item['line_item_id']);
+
+    // load product to get id
+    $product_entity = commerce_product_load_by_sku($line_item_entity->line_item_label);
+
+    // entity search for nodes with products attached
+    $query = new EntityFieldQuery;
+
+    $query->entityCondition('entity_type', 'node')
+      ->fieldCondition('field_reference', 'product_id', $product_entity->product_id, '=');
+
+    $result = $query->execute();
+    $result = reset($result['node']);
+
+    // save node ids
+    if (in_array($result->nid, $node_ids))
+    {
+      continue;
+    }
+    $node_ids[] = $result->nid;
+  }
+  
+  return $node_ids;
+}

@@ -1,0 +1,26 @@
+<?php
+/**
+ * bosa_sales module
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @version $0.1
+ * @copyright 2012 bellcom open source aps
+ **/
+function bosa_sales_access($sku, $user) {
+  error_log('knanin');
+
+  $product = commerce_product_load_by_sku($sku);
+
+  error_log(__FILE__.':'.__LINE__. print_r($user, 1)); // tth@bellcom.dk debugging
+
+  if($product->uid == $user->uid)
+  {
+    return false;
+  }
+  else
+  {
+    return true;
+  }
+}
+
+

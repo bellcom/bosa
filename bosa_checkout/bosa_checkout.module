@@ -1,0 +1,71 @@
+<?php
+/**
+ * bosa_attendees module
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @version $0.1
+ * @copyright 2012 bellcom open source aps
+ **/
+
+/*
+ * Implements hook_block_info
+ */
+function bosa_checkout_block_info() {
+  $blocks['bosa_checkout'] = array(
+    'info' => t('checkout breadcrumb block'),
+  );
+
+  return $blocks;
+}
+
+/*
+ * Implements hook_block_view
+ */
+function bosa_checkout_block_view($delta = '') {
+  $breadcrumb = '<div class="bosa_checkout">';
+
+  switch ($delta) {
+    case 'bosa_checkout':
+      $block['subject'] = t('bosa checkout');
+      
+      //if cart
+      if (strstr($_GET['q'], 'cart'))
+      {
+        $breadcrumb .= '<div class="cart current">'.t('Shopping cart').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="checkout">'.t('Checkout').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="review">'.t('Review Order').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="complete">'.t('Order complete').'</div>';
+      }
+      //if review
+      else if (strstr($_GET['q'], 'review'))
+      {
+        $breadcrumb .= '<div class="cart"><a href="/cart/">'.t('Shopping cart').'</a></div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="checkout"><a href="/'.str_replace('review', 'checkout', $_GET['q']). '">'.t('Checkout').'</a></div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="review current">'.t('Review Order').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="complete">'.t('Order complete').'</div>';
+      }
+      //if complete
+      else if (strstr($_GET['q'], 'complete'))
+      {
+        $breadcrumb .= '<div class="cart">'.t('Shopping cart').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="checkout">'.t('Checkout').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="review">'.t('Review Order').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="complete current">'.t('Order complete').'</div>';
+      }
+      //if checkout
+      else if (strstr($_GET['q'], 'checkout'))
+      {
+        $breadcrumb .= '<div class="cart"><a href="/cart/">'.t('Shopping cart').'</a></div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="checkout current">'.t('Checkout').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="review">'.t('Review Order').'</div> <div class="seperator">&#187;</div>';
+        $breadcrumb .= '<div class="complete">'.t('Order complete').'</div>';
+      }
+
+      $breadcrumb .= '</div>';
+
+      $block['content'] = $breadcrumb;
+      break;
+  }
+  return $block;
+}
+

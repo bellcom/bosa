@@ -1,0 +1,7 @@
+name = BOSA
+description = Ekstra features til lw løsning
+core = 7.x
+version = "7.x-0.1-dev"
+package = BOSA
+dependencies[] = rules
+dependencies[] = commerce

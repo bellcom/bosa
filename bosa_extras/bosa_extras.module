@@ -1,0 +1,30 @@
+<?php
+/**
+ * bosa_extras module
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @version $0.1
+ * @copyright 2012 bellcom open source aps
+ **/
+
+function bosa_extras_init() {
+
+  if(arg(0) == 'checkout')
+  {
+    $node = node_load(15);
+    error_log(__FILE__.':'.__LINE__. print_r($node, 1)); // tth@bellcom.dk debugging
+    $terms = array('terms' => $node->body[LANGUAGE_NONE][0][safe_value]);
+
+    drupal_add_js(array('bosa_extras' => $terms), 'setting');
+    drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.Terms.js');
+  }
+
+  drupal_add_library('system','ui.datepicker');
+  drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.toggleText.js');
+  drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.salesDatepicker.js');
+  drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.inCart.js');
+}
+
+function bosa_extras_user_login(&$edit, $account) {
+  drupal_goto('offer-publisher/');
+}
