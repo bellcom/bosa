@@ -1,0 +1,130 @@
+<?php
+
+/*
+ *
+ * @author Jesper Mathiassen <jm@bellcom.dk>
+ * @copyright Bellcom Open Source aps.
+ */
+
+/**
+ * Implementation of hook_menu()
+ *
+ */
+function bosa_reservation_menu() {
+  $items['node/%/reservations'] = array(
+    'title' => 'Current reservations',
+    'description' => 'Your description goes here.',
+    'access callback' => 'bosa_reservation_page_access',
+    'access arguments' => array(1),
+    'page arguments' => array(1),
+    'page callback' => 'bosa_reservation_page',
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+/**
+ * Access callback for reservations page.
+ *
+ * Only show on Offers pages.
+ */
+function bosa_reservation_page_access($nid) {
+  $node = node_load($nid);
+  return $node->type == 'offer';
+}
+
+/**
+ * Page callback for reservations page.
+ */
+function bosa_reservation_page($nid) {
+//  _bosa_reservation_check_reservations();
+//  _bosa_reservation_renew_order(46);
+  $html = array();
+  $node = node_load($nid);
+  $product_ids = field_get_items('node', $node, 'field_reference');
+  foreach ($product_ids as $product_id) {
+    $product_id = array_shift($product_id);
+    $head = Array('Order ID', 'Link');
+    $info = _bosa_reservation_product_info($product_id);
+    foreach ($info['orders'] as $order_id) {
+      $data[] = array($order_id, l('Edit', 'admin/commerce/orders/' . $order_id));
+    }
+
+    $html[$product_id] = "<h2>Product: " . l($product_id, 'admin/commerce/products/' . $product_id) . "</h2>\n" . theme('table', array('header' => $head, 'rows' => $data));
+  }
+  ksort($html);
+  return implode('', $html);
+}
+
+/**
+ * Helper function for retrieving relevant reservations info.
+ *
+ * @param int $pid
+ *   Product ID
+ *
+ * @return array
+ *   Information array
+ */
+function _bosa_reservation_product_info($pid) {
+  if ($prod = commerce_product_load($pid)) {
+    $min = field_get_items('commerce_product', $prod, 'field_mindste_antal');
+    $min = empty($min) ? 0 : array_shift(array_shift($min));
+    $stock = field_get_items('commerce_product', $prod, 'commerce_stock');
+    $stock = empty($stock) ? 0 : array_shift(array_shift($stock));
+    $query = new EntityFieldQuery();
+    $result = $query->entityCondition('entity_type', 'commerce_line_item')
+        ->propertyCondition('type', 'product')
+        ->fieldCondition('commerce_product', 'product_id', $pid, '=')
+        ->execute();
+    $line_item_ids = array_keys(array_shift($result));
+    $orders = array();
+    foreach (commerce_line_item_load_multiple($line_item_ids) as $line_item) {
+      if ($line_item->order_id > 0) {
+        $orders[] = $line_item->order_id;
+      }
+    }
+    return array(
+      'id' => (int) $pid,
+      'min' => (int) $min,
+      'stock' => (int) $stock,
+      'count' => (int) count($orders),
+      'orders' => $orders,
+    );
+  }
+  else {
+    return null;
+  }
+}
+
+function _bosa_reservation_check_reservations() {
+  // Locate all currently active products.
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'commerce_product')
+      ->propertyCondition('type', 'offer')
+      ->propertyCondition('status', 1)
+      ->execute();
+  $product_ids = array_keys(array_shift($result));
+  foreach ($product_ids as $product_id) {
+    // Get information about the product.
+    $info = _bosa_reservation_product_info($product_id);
+    // Decide if processing is required.
+    if ($info['count'] > $info['min']) {
+      error_log(basename(__FILE__) . ':' . __LINE__ . " jm@bellcom.dk: Processing product $product_id");
+    }
+    else {
+      error_log(basename(__FILE__) . ':' . __LINE__ . " jm@bellcom.dk: Ignored product $product_id");
+    }
+  }
+}
+
+//function _bosa_reservation_renew_order($order_id) {
+//  $order = commerce_order_load($order_id);
+//  error_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $order = ' . print_r($order, 1));
+//
+//  $query = new EntityFieldQuery();
+//  $result = $query->entityCondition('entity_type', 'commerce_payment_transaction')
+//      ->propertyCondition('order_id', $order_id)
+//      ->execute();
+//  error_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $result = ' . print_r($result, 1));
+//  error_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $qp = ' . print_r($qp, 1));
+//}

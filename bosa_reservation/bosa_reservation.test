@@ -1,0 +1,64 @@
+<?php
+
+/*
+ *
+ * @author Jesper Mathiassen <jm@bellcom.dk>
+ * @copyright Bellcom Open Source aps.
+ */
+
+/**
+ * @see DrupalUnitTestCase
+ */
+class BosaReservationUnitTestCase extends DrupalWebTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => 'bosa_reservation tests',
+      'description' => 'Test that bosa_reservation works properly.',
+      'group' => 'BOSA',
+    );
+  }
+
+  function setUp() {
+    drupal_load('module', 'bosa_reservation');
+    $this->profile = 'minimal';
+    parent::setUp(array('bosa_reservation', 'bosa_products'));
+    $account = $this->drupalCreateUser(array('create commerce_product entities'));
+    drush_log('Name: ' . $account->name);
+    drush_log('PW: ' . $account->pass_raw);
+    $this->drupalLogin($account);
+    $edit = array(
+      'title' => $this->randomName(16),
+      'sku' => $this->randomName(4),
+      'commerce_price[und][0][amount]' => rand(20, 1000),
+      'status' => 1,
+      'field_offer_dato[und][0][value][month]' => date('m', time() + 86400 * 7),
+      'field_offer_dato[und][0][value][day]' => date('d', time() + 86400 * 7),
+      'field_offer_dato[und][0][value][year]' => date('Y', time() + 86400 * 7),
+      'field_offer_dato[und][0][value][hour]' => 17,
+      'field_offer_dato[und][0][value][minute]' => 00,
+      'commerce_stock[und][0][value]' => 3,
+    );
+    // Create product
+//    $this->drupalGet('admin/commerce/products/add/offer');
+//    $html = $this->drupalGetContent();
+//    drush_log('log: ' . $html);
+    $this->drupalPost('admin/commerce/products/add/offer', $edit, t('Save product'));
+    $this->assertText(t('Product created'));
+    $html = $this->drupalGetContent();
+    drush_log($html);
+    $matches = array();
+    preg_match_all('/<(a)([^<]+)*(?:>(.*)<\/\1>|\s+\/>)/', $html, $matches);
+    drush_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $matches = ' . print_r($matches, 1));
+    $product = commerce_product_load(1);
+    die();
+    drush_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $product = ' . print_r($product, 1));
+    // Create offer
+    // Complete purchase
+  }
+
+  public function testProductUpdate() {
+    $product_id = 9;
+  }
+
+}
