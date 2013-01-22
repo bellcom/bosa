@@ -81,7 +81,7 @@ function bosa_attendees_form($form, &$form_state) {
     foreach( $products['commerce_product'] as $product)
     {
       $entity = entity_load('commerce_product', array($product->product_id));
-      $offerOptions = $offerOptions + array( $entity[$product->product_id]->sku => $entity[$product->product_id]->title); 
+      $offerOptions = $offerOptions + array( $entity[$product->product_id]->sku => $entity[$product->product_id]->title . ' - ' .$entity[$product->product_id]->field_offer_dato[LANGUAGE_NONE][0]['value']); 
     }
   }
 
@@ -117,7 +117,7 @@ function _bosa_attendees_offer_callback($form, $form_state) {
   $id = commerce_product_load_by_sku($form_state['values']['products']);
   $link = strip_tags($base_url) .'/attendees/'. $id->product_id .'/'.md5($form_state['values']['products']).'/print' ;
 
-  return '<div class="print-page"><a href="'.$link.'">Udskriv</a></div><div id="replace_textfield_div">' . _bosa_attendees_by_sku($form_state['values']['products']).  '</div>';
+  return '<div id="replace_textfield_div"><div class="print-page"><a href="'.$link.'">Udskriv</a></div>' . _bosa_attendees_by_sku($form_state['values']['products']).  '</div>';
 }
 
 function _bosa_attendees_offer_callback_date($form, $form_state) {

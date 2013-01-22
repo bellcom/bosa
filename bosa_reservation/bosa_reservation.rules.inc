@@ -1,6 +1,8 @@
 <?php
 
-/*
+/**
+ * @file
+ * Conditions and actions for acting on reservations in commerce.
  *
  * @author Jesper Mathiassen <jm@bellcom.dk>
  * @copyright Bellcom Open Source aps.
@@ -19,24 +21,24 @@ function bosa_reservation_rules_event_info() {
   // Events are, like the other Rules plugins in this example, keyed by their
   // machine name – by default also the callback function. Prefix with your
   // module name to avoid name conflicts.
-  $events['bosa_reservation_product_reached_min_attendance'] = array(
-    'label' => t('A Product has reached minimum attendance'),
+  $events['bosa_reservation_product_close_to_deadline'] = array(
+    'label' => t('An aktive product is about to be cancelled.'),
     'group' => t('BOSA'),
-    'parameter' => array(
+    'variables' => array(
       'commerce_product' => array(
         'type' => 'commerce_product',
-        'label' => t('Product which has reached attendance.'),
+        'label' => t('Product which is about to start.'),
       )
     ),
   );
-  $events['bosa_reservation_update_orders_reached_min_attendance'] = array(
-    'label' => t('Order on a product,which has reached minimum attendance, needs update.'),
+  $events['bosa_reservation_order_is_about_to_expire'] = array(
+    'label' => t('Order has reached a certain age.'),
     'group' => t('BOSA'),
-    'parameter' => array(
-      'commerce_product' => array(
-        'type' => 'commerce_orders',
+    'variables' => array(
+      'commerce_order' => array(
+        'type' => 'commerce_order',
         'label' => t('Order from the product, which has reached attendance.'),
-      )
+      ),
     ),
   );
 
@@ -83,8 +85,8 @@ function bosa_reservation_rules_action_info() {
     // and by default also the function name for the action callback. Prefix
     // with your module name to avoid name conflicts.
     'bosa_reservation_action_get_affected_orders' => array(
-      'label' => t('Fetch affected orders from product.'), // Name displayed to admins
-      'group' => t('BOSA'), // Used for grouping actions in select lists
+      'label' => t('Fetch affected orders from product.'),
+      'group' => t('BOSA'),
       'parameter' => array(
         'commerce_product' => array(
           'type' => 'commerce_product',
@@ -100,8 +102,8 @@ function bosa_reservation_rules_action_info() {
       )
     ),
     'bosa_reservation_action_order_id' => array(
-      'label' => t('Dump Order id to log. (FOR TESTING)'), // Name displayed to admins
-      'group' => t('BOSA'), // Used for grouping actions in select lists
+      'label' => t('Dump Order id to log. (FOR TESTING)'),
+      'group' => t('BOSA'),
       'parameter' => array(
         'commerce_order' => array(
           'save' => TRUE,
@@ -124,25 +126,35 @@ function bosa_reservation_rules_action_info() {
  * Rule callback to check attendance for a given product.
  *
  * @param commerce_product $product
+ *   Object provided by rules module.
  */
 function bosa_reservation_condition_min_attendance($product) {
   $info = _bosa_reservation_product_info($product->product_id);
   if (is_array($info)) {
-    return $info['count'] >= $info['min'];
+    if ($info['count'] >= $info['min']) {
+      watchdog('bosa_reservation', 'Product has obtained min. required participants ( @count of @min ).', array('@count' => $info['count'], '@min' => $info['min']), WATCHDOG_NOTICE);
+      return TRUE;
+    }
   }
-  else {
-    return FALSE;
-  }
+  return FALSE;
 }
 
+/**
+ * Action callback which fetches any orders on a given product.
+ *
+ * @param commerce_product $product
+ *   Object provided by rules module
+ */
 function bosa_reservation_action_get_affected_orders($product) {
   $info = _bosa_reservation_product_info($product->product_id);
   $orders = commerce_order_load_multiple($info['orders']);
 
   return array('commerce_orders' => array_values($orders));
-//  error_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $product = ' . print_r($product, 1));
 }
 
+/**
+ * Helper action for debugging. Simply drop order ID to errorlog.
+ */
 function bosa_reservation_action_order_id($order) {
   error_log(basename(__FILE__) . ':' . __LINE__ . ' Var: $order = ' . print_r($order->order_id, 1));
   return $order;

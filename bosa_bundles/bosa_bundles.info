@@ -1,0 +1,6 @@
+name = BOSA bundles
+description = Adding bundle functionality with lightbox
+core = 7.x
+version = "7.x-0.1-dev"
+package = BOSA
+dependencies[] = commerce

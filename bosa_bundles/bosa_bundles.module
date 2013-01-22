@@ -1,0 +1,610 @@
+<?php
+/*
+ * Implements hook_form_alter()
+ */
+function bosa_bundles_form_alter(&$form, &$form_state, $form_id){
+  if(strstr($form['#id'], 'commerce-cart-add-to-cart-form'))
+  {
+    $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
+    
+    if( $commerce_product->type == "pakke")
+    {
+      unset($form['submit']);      
+      $form['submit']['#type'] = 'item';
+      $form['submit']['#markup'] = '<div class="add-to-cart"><a href="/bundles/'.$commerce_product->product_id.'" rel="lightframe"><i class="button">Køb</i></a></div>';
+    }
+  }
+
+  // if this is the cart form, we want to disable the quantity fields, so that the user does not f*ck up the bundle
+  else if($form['#id'] == 'views-form-commerce-cart-form-default')
+  {
+    foreach($form['edit_quantity'] as $key => $form_item)
+    {
+      if(is_numeric($form_item['#line_item_id']))
+      {
+        $line_item = commerce_line_item_load($form_item['#line_item_id']);
+        if(isset($line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']))
+        {
+          $form['edit_quantity'][$key]['#attributes'] = array('readonly' => 'readonly');
+        }
+      }
+    }
+  }
+  return $form;
+}
+
+/*
+ * Implements hook_menu()
+ */
+function bosa_bundles_menu(){
+  $items['bundles'] = array(
+    'page callback' => 'bosa_bundles_page',
+    'access arguments' => array('access content'), 
+  );
+  return $items;
+}
+
+
+/**
+ * Main form function for multistep
+ *
+ * @access public
+ * @param
+ * @return
+ **/
+function bosa_bundles_form($form, &$form_state, $node_ids, $node_id){
+  if (!isset($form_state['stage'])) $form_state['stage'] = 'attendees';
+  
+  $form_state['stages'] = $node_ids;
+  $form_state['bunde_node_id'] = $node_id;
+
+  $form = array();
+
+  $form['header'] = _bosa_bundles_form_header($form, $form_state);
+
+  switch($form_state['stage']) {
+    case 'attendees':
+      return _bosa_bundles_attendees_form($form, $form_state);
+      break;
+
+    case 'confirm':
+      return _bosa_bundles_confirm_form($form, $form_state);
+      break;
+
+    case 'done':
+      return _bosa_bundles_done_form($form, $form_state);
+      break;
+
+    default:
+      return _bosa_bundles_activity_form($form, $form_state);
+      break;
+  }
+  return $form;
+}
+
+function _bosa_bundles_form_header($form_, $form_state){
+  if(is_numeric($form_state['stage']))
+  {
+    $header = array(
+      '#type' => 'item',
+      '#markup' => t('Step') .' '. $form_state['stage'] . ' ' . t('of') . ' ' . count($form_state['stages']),
+    );
+    
+    return $header;
+  }
+}
+
+function _bosa_bundles_attendees_form($form, &$form_state){
+
+  $form['attendees']['adults'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Adults'),
+    '#element_validate' => array('element_validate_integer_positive'), 
+    '#prefix' => '<div class="choose-amount">'.t('Please enter the amount of attendees').'</div>' . 
+                 '<div class="note">'.t('Note: Not all activities have prices for adults and children').'</div>',
+  ); 
+
+  // fill out the form with previously chosen values
+  if(isset($form_state['multistep']['attendees']['adults'])) 
+  {
+    $form['attendees']['adults']['#value'] = $form_state['multistep']['attendees']['adults'];
+  }
+
+  $form['attendees']['children'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Children'),
+    '#element_validate' => array('element_validate_integer_positive'), 
+  ); 
+
+  // fill out the form with previously chosen values
+  if(isset($form_state['multistep']['attendees']['children'])) 
+  {
+    $form['attendees']['children']['#value'] = $form_state['multistep']['attendees']['children'];
+  }
+
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+    '#submit' => array('_bosa_bundles_attendees_form_submit'),
+  );
+
+  $form['#validate'] = array(_bosa_bundles_attendees_validate);
+  return $form;
+}
+
+function _bosa_bundles_attendees_validate($form, &$form_state){
+  error_log(__FILE__.':'.__LINE__. print_r($form_state['values'], 1)); // tth@bellcom.dk debugging
+  if(($form_state['values']['adults'] + $form_state['values']['children']) == NULL)
+  {
+    form_set_error('no attendees entered');
+  }
+}
+
+/**
+ * Main activity form. Contains given products for referenced nodes
+ * both activities and extras
+ **/
+function _bosa_bundles_activity_form($form, &$form_state){
+  $node = node_load($form_state['stages'][$form_state['stage']-1]['nid']);
+  
+  $form['text'] = array(
+    '#type' => 'item',
+    '#markup' => views_embed_view('bundle_offer_view', 'block', $node->nid) ,
+  );
+
+  // showing possible products to choose from
+  $options = array();
+  foreach($node->field_reference[LANGUAGE_NONE] as $node_field_reference)
+  {
+    $view =  views_embed_view('bundle_product_view', 'block', $node_field_reference['product_id']);
+    
+    // if the view returns an empty header we skip the product
+    if(strstr($view, 'view-empty')) {
+      continue;
+    }
+    $options[$node_field_reference['product_id']] = $view;
+  }
+
+  $form['products-'.$node->nid] = array(
+    '#type' => 'radios',
+    '#options' => $options,
+    '#required' => TRUE,
+    '#prefix' => '<div class="bundle-products"><div class="date-time">Dato og tidspunkter:</div>
+    <div class="stock-offer">Pladser:</div>',
+  );
+
+  // We want the previously chosen value to persist
+  if(isset($form_state['multistep'][$form_state['stage']]))
+  {
+    $form['products-'.$node->nid]['#default_value'] = reset($form_state['multistep'][$form_state['stage']]);
+  }
+
+  // showing attached product extras 
+  foreach($node->field_reference[LANGUAGE_NONE] as $node_field_reference)
+  {
+    $view =  views_embed_view('bundle_product_view', 'block_1', $node_field_reference['product_id']);
+
+    
+    // if the view returns an empty header we skip the product
+    if(strstr($view, 'view-empty')) {
+      continue;
+    }
+    
+    if(!$i) 
+    {
+      $form['extra-header'] = array(
+        '#type' => 'item',
+        '#markup' => '      <div class="offer-extra">Ekstra tilkøb:</div>
+        <div class="extra-price">Pris:</div>
+        <div class="extra-comment">Kommentar:</div>',
+      );
+    }
+    $i = TRUE;
+
+    $form[$node->nid.'extra-'.$node_field_reference['product_id']] = array(
+      '#type' => 'item',
+      '#markup' => $view,
+    );
+
+    $form[$node->nid.'comment-'.$node_field_reference['product_id']] = array(
+      '#type' => 'textfield',
+    );
+
+    // We want the previously chosen value to persist
+    if(isset($form_state['multistep'][$form_state['stage']]['comment-'.$node_field_reference['product_id']]))
+    {
+      $form[$node->nid.'comment-'.$node_field_reference['product_id']]['#value'] = $form_state['multistep'][$form_state['stage']][$node->nid.'comment-'.$node_field_reference['product_id']];
+    }
+    
+    $form[$node->nid.'quantity-'.$node_field_reference['product_id']] = array(
+      '#type' => 'textfield',
+      '#element_validate' => array('element_validate_integer_positive'), 
+    );
+    
+    // We want the previously chosen value to persist
+    if(isset($form_state['multistep'][$form_state['stage']]['quantity-'.$node_field_reference['product_id']]))
+    {
+      $form[$node->nid.'quantity-'.$node_field_reference['product_id']]['#value'] = $form_state['multistep'][$form_state['stage']][$node->nid.'quantity-'.$node_field_reference['product_id']];
+    }
+
+  }
+
+  $form['previous'] = array(
+    '#type' => 'submit',
+    '#value' => t('Previous'),
+    '#submit' => array('_bosa_bundles_attendees_form_submit'),
+    '#prefix' => '</div><div class="buttons">'
+  ); 
+    $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+    '#submit' => array('_bosa_bundles_attendees_form_submit'),
+    '#suffix' => '</div>'
+  );
+
+  return $form;
+}
+
+/**
+ * Submit function for multistep form
+ *
+ * @access public
+ * @param 
+ *  $form
+ *  $form_state
+ * @return 
+ *  nothing
+ **/
+function _bosa_bundles_attendees_form_submit($form, &$form_state){
+
+  $form_state['multistep'][$form_state['stage']] = $form_state['values'];
+
+  $count = count($form_state['stages']);
+
+  switch($form_state['clicked_button']['#parents'][0])
+  {
+    case 'next':
+      if($form_state['stage'] == 'attendees')
+      {
+        $form_state['stage'] = 1;
+      }
+      elseif($form_state['stage'] == $count)
+      {
+        $form_state['stage'] = 'confirm';
+      }
+      elseif($form_state['stage'] == 'confirm')
+      {
+        _bosa_bundles_save_bundles($form_state);
+        $form_state['stage'] = 'done';
+      }
+      else
+      {
+        $form_state['stage']++;
+      }   
+      break;
+
+    case 'previous':
+      if($form_state['stage'] == 1)
+      {
+        $form_state['stage'] = 'attendees';
+      }
+      elseif($form_state['stage'] == 'confirm')
+      {
+        $form_state['stage'] = $count;
+      }
+      else
+      {
+        $form_state['stage']--;
+      }
+      break;
+  }
+  
+
+  $form_state['rebuild'] = TRUE;
+}
+
+function _bosa_bundles_confirm_form($form, &$form_state){
+
+  $bought_products = "";
+
+  foreach($form_state['multistep'] as $key => $value) 
+  {
+    // handle saving product to cart
+    if(is_numeric($key))
+    {
+      $product_id = reset($value);
+      
+      $bought_products .= views_embed_view('bundle_product_view', 'block_2', $product_id);
+    }
+
+    // build an array containing quantity and comments for extra products
+    foreach($value as $subkey => $subvalue){
+      if(strstr($subkey, 'comment')){
+        $extra_id = explode('-', $subkey);
+
+        $extra_products[$extra_id[1]]['comment'] = $subvalue;
+      }
+      if(strstr($subkey, 'quantity')){
+        $extra_id = explode('-', $subkey);
+
+        $extra_products[$extra_id[1]]['quantity'] = $subvalue;
+      }
+
+    }
+
+    // save the extras to the cart
+    foreach($extra_products as $key => $value)
+    {
+      if(is_numeric($value['quantity']))
+      {
+        $product_id = $key;
+        $bought_products .= '<div class="bundle-extra">'. views_embed_view('bundle_product_view', 'block_1', $product_id) . '<div class="quantity">'.$value['quantity'] .'</div><div class="comment">'.$value['comment'].'</div></div>' ;
+      }
+    }
+    unset($extra_products);
+  }
+
+
+ $form['items'] = array(
+    '#type' => 'item', 
+    '#markup' => '<div class="chosen-products">'.t('You have chosen:').'</div>
+        <div class="adults">'.$form_state['multistep']['attendees']['adults'].' '.t('adults').'</div>
+        <div class="children">'.$form_state['multistep']['attendees']['children'].' '.t('children').'</div>
+        
+        '.'<div class="chosen-products">'.$bought_products.'</div>'.'
+        <div class="message">'.t('Note: You can not change the contents of this package after you save it to your cart').'
+        </div>',
+  );
+
+  $form['previous'] = array(
+    '#type' => 'submit',
+    '#value' => t('Previous'),
+    '#submit' => array('_bosa_bundles_attendees_form_submit'),
+  ); 
+    $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => t('Next'),
+    '#submit' => array('_bosa_bundles_attendees_form_submit'),
+  );
+
+  return $form; 
+}
+
+function _bosa_bundles_done_form($form, &$form_state){
+  return array('item' => array('#type' => 'item', '#markup' => 'Pakken blev tilføjet din kurv<script>window.parent.location.reload();</script>'));
+}
+
+/**
+ * Page callback for bundles lightbox
+ *
+ * @access public
+ * @param 
+ *  int $node_id - id for the with references
+ * @return 
+ **/
+function bosa_bundles_page($node_id){
+  $node = node_load($node_id);
+
+  $node_ids = $node->field_activity_reference[LANGUAGE_NONE];
+
+  return drupal_get_form('bosa_bundles_form', $node_ids, $node_id);
+}
+
+/**
+ * Function saving chosen product to cart. 
+ *
+ * @access public
+ * @param 
+ *  array $form_state
+ * @return 
+ *  nothing
+ **/
+function _bosa_bundles_save_bundles($form_state) {
+  global $user;
+
+  $attendees = $form_state['multistep']['attendees'];
+
+  if(($attendees['adults'] + $attendees['children']) == NULL)
+  {
+    die('Der gik noget galt, prøv igen');
+  }
+
+  $bundle_id = $form_state['bunde_node_id'] .'-'. time();
+
+  foreach($form_state['multistep'] as $key => $value) 
+  {
+    // handle saving product to cart
+    if(is_numeric($key))
+    {
+      $product_id = reset($value);
+      
+      $product = commerce_product_load($product_id);
+
+      $quantity = $attendees['adults'];
+      
+      // if the product has 2 prices
+      if ($product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1 && $attendees['children'] > 0) {
+        $line_item = commerce_product_line_item_new($product, $attendees['children'], 0);
+
+        // loading the lineitem into an entity wrapper 
+        $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+        $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+
+        // updating the base price
+        $line_item_wrapper->commerce_unit_price->data = array(
+          'components' => array(
+            0 => array(
+              'name' => 'base_price',
+              'price' => array(
+                'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
+                'currency_code' => 'dkk'
+              ),
+            ),
+          ),
+        );
+        
+        // we want to be able to see that this product has been sold with the other price
+        // this is used later on when we set the price again
+        $line_item_wrapper->field_line_item_comment = 'Anden pris';  
+        $line_item_wrapper->field_line_item_bundle = $bundle_id;  
+
+        commerce_line_item_save($line_item);
+        // save the lineitem to the order
+        $form_state['line_item'] = commerce_cart_product_add(
+          $user->uid,
+          $line_item,
+          0
+        );
+      }
+      else
+      {
+        $quantity += $attendees['children'];
+      } 
+
+      $line_item = commerce_product_line_item_new($product, $quantity, 0);
+
+      // loading the lineitem into an entity wrapper 
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+
+      $line_item_wrapper->field_line_item_bundle = $bundle_id;  
+      commerce_line_item_save($line_item);
+      // save the lineitem to the order
+      $form_state['line_item'] = commerce_cart_product_add(
+        $user->uid,
+        $line_item,
+        0
+      );
+    }
+
+    // build an array containing quantity and comments for extra products
+    foreach($value as $subkey => $subvalue){
+      if(strstr($subkey, 'comment')){
+        $extra_id = explode('-', $subkey);
+
+        $extra_products[$extra_id[1]]['comment'] = $subvalue;
+      }
+      if(strstr($subkey, 'quantity')){
+        $extra_id = explode('-', $subkey);
+
+        $extra_products[$extra_id[1]]['quantity'] = $subvalue;
+      }
+
+    }
+
+    // save the extras to the cart
+    foreach($extra_products as $key => $value)
+    {
+      if(is_numeric($value['quantity']))
+      {
+        $product = commerce_product_load($key);
+        $line_item = commerce_product_line_item_new($product, $value['quantity'], 0, array(), 'product_comment');
+
+        // loading the lineitem into an entity wrapper 
+        $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+
+        // we want to be able to see that this product has been sold with the other price
+        // this is used later on when we set the price again
+        $line_item_wrapper->field_line_item_ref = $product_id;  
+
+        $line_item_wrapper->field_line_item_comment = $value['comment'];  
+        
+        $line_item_wrapper->field_line_item_bundle = $bundle_id;  
+        
+        commerce_line_item_save($line_item);
+        // save the lineitem to the order
+        $form_state['line_item'] = commerce_cart_product_add(
+          $user->uid,
+          $line_item,
+          0
+        );
+      } 
+    }
+
+    unset($extra_products);
+  }
+}
+
+/**
+ * Calculate bundle price 
+ * Function called by RULES
+ **/
+function bosa_bundles_calculate_sell_price($line_item){
+
+  if(isset($line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']))
+  {
+    $node_id = explode('-', $line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']);
+    
+    $node = node_load($node_id[0]);
+
+    if(is_object($node))
+    {
+      $percentage = $node->field_bundle_discount[LANGUAGE_NONE][0]['value'];
+
+      $product = commerce_product_load_by_sku($line_item->line_item_label);
+      
+      if($line_item->type == 'product')
+      { 
+        $oldprice = $product->commerce_price[LANGUAGE_NONE][0]['amount'];
+
+        $new_price = $oldprice - ($oldprice * ($percentage / 100));
+
+        $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+          
+        // updating the unit price
+        $line_item_wrapper->commerce_unit_price->amount = $new_price;
+
+        // updating the base price
+        $line_item_wrapper->commerce_unit_price->data = array(
+          'components' => array(
+            0 => array(
+              'name' => 'base_price',
+              'price' => array(
+                'amount' => $new_price,
+                'currency_code' => 'DKK'
+              ),
+            ),
+          ),
+        );
+        commerce_line_item_save($line_item);
+      }
+    }
+  }
+}
+
+/**
+ * Delete entire bundle from basket when user removes one of the products
+ *
+ **/
+function bosa_bundles_commerce_cart_product_remove($order, $product, $quanity, $line_item) {
+  if(isset($line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']))
+  {
+    $query = new EntityFieldQuery();
+    $result = $query->entityCondition('entity_type', 'commerce_line_item', '=')
+      ->fieldCondition('field_line_item_bundle', 'value', $line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value'], '=')
+      ->execute();
+
+    foreach($result['commerce_line_item'] as $key => $value)
+    {
+      $line_item = commerce_line_item_load($key);
+
+      // Check to ensure the line item exists and is a product line item.
+      if (!$line_item || !in_array($line_item->type, commerce_product_line_item_types())) {
+        return $order;
+      }
+
+      // Remove the line item from the line item reference field.
+      commerce_entity_reference_delete($order, 'commerce_line_items', 'line_item_id', $key);
+
+      // Wrap the line item to be deleted and extract the product from it.
+      $wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+      $product = $wrapper->commerce_product->value();
+
+      // Delete the actual line item.
+      commerce_line_item_delete($line_item->line_item_id);
+
+      commerce_order_save($order);
+    }
+    drupal_set_message(t('The bundle has been removed from your cart'));
+  }
+
+}

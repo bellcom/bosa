@@ -143,7 +143,6 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
     $line_item,
     0
   );
-
   //commerce_cart_add_to_cart_form_submit($form, $form_state); 
   return '<script type="text/javascript">location.reload()</script>';
 }
@@ -152,16 +151,18 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * Callback function adds line item to cart with reference product
  *
  * @access public
- * @param Parameter
- * @return something
+ * @param 
+ * @return 
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
 
-  $nodeid = explode('/', $form['#action']);
+  $node_path = drupal_lookup_path("source",ltrim($form['#action'], '/'));
+
+  $nodeid = explode('/', $node_path);
+
   global $user;
   $order = commerce_cart_order_load($user->uid);
-  $node = node_load($nodeid[2]);
-
+  $node = node_load($nodeid[1]);
   $cart_products = array();
   foreach ($order->commerce_line_items[LANGUAGE_NONE] as $lineitem)
   {
@@ -175,7 +176,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
     
     $cart_products[] =  $line_item_product_id;
   }
-  $referenced_products = array(); 
+  $referenced_products = array();
   foreach($node->field_reference[LANGUAGE_NONE] as $reference)
   {
     $product_entity = commerce_product_load($reference['product_id']);
@@ -198,19 +199,17 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
 
       $product_id = $form_state['values']['product_id'];
       $product = commerce_product_load($product_id);
-
-      $line_item = commerce_product_line_item_new($product, 1, 0, array(), 'product_comment');
+      $line_item = commerce_product_line_item_new($product, $form_state['values']['quantity'], 0, array(), 'product_comment');
 
       field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
 
       // loading the lineitem into an entity wrapper 
       $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-      //$line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
 
       // we want to be able to see that this product has been sold with the other price
       // this is used later on when we set the price again
       $line_item_wrapper->field_line_item_ref = $product_id_ref;  
-
+      
       commerce_line_item_save($line_item);
       // save the lineitem to the order
       $form_state['line_item'] = commerce_cart_product_add(
@@ -230,7 +229,6 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
   }
   return $return;
 }
-
 
 /**
  * Reset the product price, when the item has been sold with the 2nd price

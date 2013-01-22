@@ -22,8 +22,6 @@ jQuery(document).ready(function(){
     }
   }
 
-  console.log('load');
-
   if(jQuery('.views-field-field-offer-you-get').height() > 290) {
     jQuery('.views-field-field-offer-you-get')
       .css('height','318px') 
