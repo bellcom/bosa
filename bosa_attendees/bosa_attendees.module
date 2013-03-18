@@ -70,7 +70,6 @@ function bosa_attendees_form($form, &$form_state) {
   // Fetch a list of product names for the dropdown
   $productsQuery = new EntityFieldQuery();
   $productsQuery->entityCondition('entity_type', 'commerce_product')
-    ->entityCondition('bundle', 'offer')
    ->fieldCondition('field_offer_dato', 'value', 'NOW()', '<'); 
  
   $products = $productsQuery->execute();
@@ -158,29 +157,32 @@ function _bosa_attendees_by_sku($product_sku) {
    ->propertyCondition('line_item_label', $product_sku, '='); 
   
   $lineItems = $lineItemQuery->execute();
-  foreach ($lineItems['commerce_line_item'] as $lineItem) 
-  {
-    $attendees = _bosa_attendees_from_line_item_id($lineItem->line_item_id);
-    if(!empty($attendees))
+
+  if(!empty($lineItems)) {
+    foreach ($lineItems['commerce_line_item'] as $lineItem) 
     {
-      $end = array('order_id' => '', 'comment' => '');
+      $attendees = _bosa_attendees_from_line_item_id($lineItem->line_item_id);
+      if(!empty($attendees))
+      {
+        $end = array('order_id' => '', 'comment' => '');
 
-      if(isset($allAttendees))
-      {
-        $end = end($allAttendees);
-      }
-      
-      if($end['order_id'] == $attendees['order_id'] && $end['comment'] == $attendees['comment'])
-      {
+        if(isset($allAttendees))
+        {
+          $end = end($allAttendees);
+        }
+        
+        if($end['order_id'] == $attendees['order_id'] && $end['comment'] == $attendees['comment'])
+        {
 
-        $allAttendees[sizeof($allAttendees)-1]['quantity']++;
+          $allAttendees[sizeof($allAttendees)-1]['quantity']++;
+        }
+        else
+        {
+          $allAttendees[] = $attendees;
+        }
       }
-      else
-      {
-        $allAttendees[] = $attendees;
-      }
-    }
-  } 
+    } 
+  }
   
   if($extraLineItems['commerce_line_item'])
   {
@@ -285,35 +287,44 @@ function _bosa_attendees_html($allAttendees, $extraValues) {
   $offerAttendees = '<div class="title"><div class="name">Navn:</div><div class="phone">Telefonnr:</div><div class="quantity">antal:</div><div class="comment">kommentar:</div></div>';
 
   $i = "";
-  foreach($allAttendees as $attendee)
-  {
-    $i++;
-    $row = $i%2? "odd": "even";
-    
-    $offerAttendees .= '<div class="'.$row.'">';
-    //display product
-    $offerAttendees .= '<div class="name">'.$attendee['name'] .'</div>';
-    $offerAttendees .= '<div class="phone">'.$attendee['phone'] .'</div>';
-    $offerAttendees .= '<div class="quantity">'.$attendee['quantity'].'</div>';
-    //display comment
-    $offerAttendees .= '<div class="comment">'.$attendee['comment'] .'</div>';
-
-    if(isset($extraValues[$attendee['order_id']]))
+  
+  if(!empty($allAttendees)){
+    foreach($allAttendees as $attendee)
     {
-      $offerAttendees .= '<div class="extras">';
+      $i++;
+      $row = $i%2? "odd": "even";
       
-      foreach($extraValues[$attendee['order_id']] as $extra )
-      {
-        $offerAttendees .= '<div class="sku">' .$extra['product_sku'] .'</div>';
-        $offerAttendees .= '<div class="quantity">' .$extra['quantity'] .'</div>';
-        $offerAttendees .= '<div class="comment">' .$extra['comment'] .'</div>';
-      }
+      $offerAttendees .= '<div class="'.$row.'">';
+      //display product
+      $offerAttendees .= '<div class="name">'.$attendee['name'] .'</div>';
+      $offerAttendees .= '<div class="phone">'.$attendee['phone'] .'</div>';
+      $offerAttendees .= '<div class="quantity">'.$attendee['quantity'].'</div>';
+      //display comment
+      $offerAttendees .= '<div class="comment">'.$attendee['comment'] .'</div>';
 
+      if(isset($extraValues[$attendee['order_id']]))
+      {
+        $offerAttendees .= '<div class="extras">';
+        
+        foreach($extraValues[$attendee['order_id']] as $extra )
+        {
+          $offerAttendees .= '<div class="sku">' .$extra['product_sku'] .'</div>';
+          $offerAttendees .= '<div class="quantity">' .$extra['quantity'] .'</div>';
+          $offerAttendees .= '<div class="comment">' .$extra['comment'] .'</div>';
+        }
+
+        $offerAttendees .= '</div>';
+      }
       $offerAttendees .= '</div>';
+      $number_of_attendees += $attendee['quantity'];
     }
-    $offerAttendees .= '</div>';
-    $number_of_attendees += $attendee['quantity'];
   }
+  else 
+  {
+    $offerAttendees .= '<div class="name">Ingen deltagere</div>';
+
+  }
+
   $offerAttendees .= '<div class="number_of_attendees_title">Deltagere i alt:</div><div class="number_of_attendees">'.$number_of_attendees.'</div>';
 
   return $offerAttendees;
@@ -330,12 +341,11 @@ function bosa_attendees_send_mail(){
   //get product skus for tomorrow
   $productsQuery = new EntityFieldQuery();
   $productsQuery->entityCondition('entity_type', 'commerce_product')
-    ->entityCondition('bundle', 'offer')
    ->fieldCondition('field_offer_dato', 'value', $tomorrow .' 00:00:00', '>') 
    ->fieldCondition('field_offer_dato', 'value', $tomorrow .' 23:59:59', '<'); 
  
   $products = reset($productsQuery->execute());
-
+  if($products){
   //loop over, fetch attendees and send mail
   foreach($products as $product)
   {
@@ -384,6 +394,7 @@ function bosa_attendees_send_mail(){
     }
   }
   variable_set('bosa_attendees_sent_list_ids', serialize($ids));
+}
 }
 
 

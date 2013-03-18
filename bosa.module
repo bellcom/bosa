@@ -16,12 +16,12 @@ function bosa_cron() {
    * Automated abandoned carts cleanup
    */
 
-  // We want to fetch the carts older than 36hours
-  $expiredOrder = time() - '172800';
+  // We want to fetch the carts older than 24hours
+  $expiredOrder = time() - '86400';
 
   // Prepare statement to get order_ids
-  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status = :status AND changed < :changed", array(
-    ':status' => 'cart',
+  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status != :status AND changed < :changed", array(
+    ':status' => 'completed',
     ':changed' => $expiredOrder,
       ));
 
@@ -41,10 +41,11 @@ function bosa_cron() {
   bosa_popular_offers_cron();
 }
 
+
+
 /*
  * Implements hook block_info
  */
-
 function bosa_block_info() {
   $blocks['bosa'] = array(
     'info' => t('Popular offers'),
@@ -252,10 +253,19 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
   {
     global $user;
     if(!in_array('Offer admin', $user->roles)){
-      error_log(__FILE__.':'.__LINE__. print_r($user, 1)); // tth@bellcom.dk debugging
       $form['options']['status']['#disabled'] = TRUE;
       $form['options']['status']['#default_value'] = 0;
     }
   }
 
+  // Checkout billing/accont information titles did not please, so here we go.
+  if($form_id == 'commerce_checkout_form_review') {
+    $form['checkout_review']['review']['#data']['account']['title'] = t('Your information');
+    unset($form['checkout_review']['review']['#data']['customer_profile_billing']['title']);
+  }
+  if($form_id == 'commerce_product_ui_product_form') {
+    $form['commerce_price'][LANGUAGE_NONE][0]['amount']['#title'] = t('Price');
+  }
+
 }
+

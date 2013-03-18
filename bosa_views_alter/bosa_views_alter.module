@@ -1,0 +1,18 @@
+<?php
+/*
+ * Implements hook_alter_views_pre_render()
+ *
+ * Not the pretty way to do this, but we need to not show multiple rows,
+ * we have to use connections, and we cant use aggregation.
+ */
+function bosa_views_alter_views_pre_render(&$view) {
+  if($view->name == 'offers_list') {
+    foreach ($view->result as $row){
+      if (!in_array($row->nid, $used_nids)) {
+        $new_view_result[] = $row;
+        $used_nids[] = $row->nid;
+      }
+    }
+  $view->result = $new_view_result;
+  }
+}

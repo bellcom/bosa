@@ -39,7 +39,7 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
       $form['text'] = array(
         '#type' => 'item',
         '#weight' => 92,
-        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$price.'</div>' ,
+        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$price.'  - barn</div>' ,
       );
 
       $form['quantity2'] = array(
@@ -223,7 +223,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
       break;
     
     default:
-      $return = 'Du kan ikke købe tilvalgsprodukter hvis du har valgt mere end en dato på samme aktivitet<br /><a href="javascript: location.reload()">Tilbage</a>';
+      $return = 'Du kan ikke købe tilvalgsprodukter hvis du har valgt mere end en dato på samme aktivitet. Hvis du ønsker dette skal du foretage endnu en booking.<br /><a href="javascript: location.reload()">Tilbage</a>';
       
       break;
   }

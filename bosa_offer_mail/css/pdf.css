@@ -1,6 +1,7 @@
 body {
   font-family: sans-serif;
   width: 700px;
+  font-size: 12px;
 }
 .view-content .views-field.views-field-field-offer-you-get, 
 .view-content .views-field.views-field-title {
@@ -18,17 +19,52 @@ width: 700px;
 .views-field.views-field {
 width: 300px;
 }
-.offer-mail-view .views-row{
+.page-break{
   page-break-after: always;
 }
 
-td {
-width: 180px;
+td.left {
+width: 500px;
 }
 .ticket { clear:left;
 padding-top: 30px;
 }
 .ticket.title{
   font-size: 20px;
+  margin-bottom: 25px;
+}
+
+.header{
+  font-size: 26px;
+}
+
+span {
+  display: inline-block;
+}
+
+.label {
+    width: 100px;
+}
+
+.field {
+  width: 550px;
+  vertical-align: top;
+}
+
+.views-field.views-field-field-offer-images-1 {
+    margin-top: 20px;
+}
+
+div {
+    display: block;
+    margin: 5px 0 0;
+}
+.field.title {
+  font-weight: bold;
+} 
+
+.extras {
+  margin-top: 20px;
+  font-size: 14px;
   font-weight: bold;
 }

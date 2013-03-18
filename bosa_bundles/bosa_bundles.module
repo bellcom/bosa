@@ -126,7 +126,9 @@ function _bosa_bundles_attendees_form($form, &$form_state){
     '#type' => 'submit',
     '#value' => t('Next'),
     '#submit' => array('_bosa_bundles_attendees_form_submit'),
-  );
+    '#prefix' => '</div><div class="buttons">',
+    '#suffix' => '</div>',
+ );
 
   $form['#validate'] = array(_bosa_bundles_attendees_validate);
   return $form;
@@ -196,7 +198,9 @@ function _bosa_bundles_activity_form($form, &$form_state){
         '#type' => 'item',
         '#markup' => '      <div class="offer-extra">Ekstra tilkøb:</div>
         <div class="extra-price">Pris:</div>
-        <div class="extra-comment">Kommentar:</div>',
+        <div class="extra-comment">Kommentar:</div>
+        <div class="extra-amount">Stk:</div>
+	',
       );
     }
     $i = TRUE;
@@ -545,7 +549,15 @@ function bosa_bundles_calculate_sell_price($line_item){
       if($line_item->type == 'product')
       { 
         $oldprice = $product->commerce_price[LANGUAGE_NONE][0]['amount'];
+        // hack to handle second price	 
+        if(isset($line_item->field_line_item_comment[LANGUAGE_NONE][0]))
+	  {
+	    if($line_item->field_line_item_comment[LANGUAGE_NONE][0]['value'] == 'Anden pris')
+	    {
 
+		$oldprice = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+	    }
+	}
         $new_price = $oldprice - ($oldprice * ($percentage / 100));
 
         $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);

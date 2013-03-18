@@ -30,19 +30,33 @@ function bosa_offer_mail_menu() {
  *  _bosa_offer_mail_create_pdf callback
  **/
 function bosa_offer_mail_pdf($order_id, $arg){
-  
+
+  global $user;
+
   $order = commerce_order_load($order_id);
   $key = $order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id'];
   $key .= $order->created;
 
-  if($key == $arg)
-  {
-    return _bosa_offer_mail_create_pdf($order);
+  if(is_object($order)){
+
+    if($key == $arg || (in_array('administrator', $user->roles) || in_array('offer_admin', $user->roles ) ))
+    {
+      return _bosa_offer_mail_create_pdf($order);
+    }
+    else {
+      return "";
+    }
   }
+  else {
+    return "";
+ }
 }
 
 /**
  * create pdf containing using dompdf
+ *
+ * @todo
+ *  split this up!
  *
  * @access public
  * @param 
@@ -51,63 +65,97 @@ function bosa_offer_mail_pdf($order_id, $arg){
  *  
  **/
 function _bosa_offer_mail_create_pdf($order){
-  require_once views_pdf_get_library('dompdf') . '/dompdf_config.inc.php';
+  require_once libraries_get_path('dompdf') . '/dompdf_config.inc.php';
   global $base_url;
 
   $node_ids = bosa_offer_mail_get_node_ids($order->commerce_line_items[LANGUAGE_NONE]);
-  
-  $id_url = implode('/', $node_ids);
+
+  $pages = 0;
+  $current_page = 0;
+
   $view = '<html>
     <head>
-        <link rel="stylesheet" type="text/css" href="'.$base_url.'/sites/all/modules/bosa_offer_mail/css/pdf.css">
+    <link rel="stylesheet" type="text/css" href="'.$base_url.'/'.drupal_get_path('module', 'bosa_offer_mail').'/css/pdf.css">
         <meta http-equiv="content-type" content="text/html;charset=utf-8">
         </head>
         <body>';
 
-  $view .= '<div class="ticket title">Billet information</div><div class="ticket info">Medbring denne kvittering ved fremmøde på aktiviteten.</div>    <table>
-      <tr>
-      <td>
-        Antal:
-        </td>
-        <td>
-        Produkt:
-        </td>
-        <td>
-        Kommentar:
-        </td>
-        <td>
-        Tidspunkt:
-        </td>
-        </tr>';
-
-  foreach($order->commerce_line_items[LANGUAGE_NONE] as $line_item_id)
+  foreach ($order->commerce_line_items[LANGUAGE_NONE] as $value)
   {
-    $line_item_entity = commerce_line_item_load($line_item_id['line_item_id']);
+    $line_item_entity = commerce_line_item_load($value['line_item_id']);
+    
+    if(!empty($line_item_entity->field_line_item_ref))
+    {
+      error_log(__FILE__.':'.__LINE__. print_r($line_item_entity->field_line_item_comment, 1)); // tth@bellcom.dk debugging
+      $product_reference[$line_item_entity->field_line_item_ref[LANGUAGE_NONE][0]['value']][] = array(
+        'title' => $line_item_entity->line_item_label,
+        'quantity' => $line_item_entity->quantity,
+        'comment' => !empty($line_item_entity->field_line_item_comment) ? $line_item_entity->field_line_item_comment[LANGUAGE_NONE][0]['value'] : '',
+      );
+    }
 
-    $commerce_product_entity = commerce_product_load($line_item_entity->commerce_product[LANGUAGE_NONE][0]['product_id']);
-
-    $view .= '
-        <tr>
-        <td>'.
-        $line_item_entity->quantity
-        .'</td>
-        <td>'.
-        $commerce_product_entity->title
-        .'</td>
-        <td>'.
-        $line_item_entity->field_line_item_comment[LANGUAGE_NONE][0]['value']
-        .'</td>
-        <td>'.
-        $commerce_product_entity->field_offer_dato[LANGUAGE_NONE][0]['value']
-        .'</td>
-        </tr>';
+    if($line_item_entity->type == 'product') {
+      $pages++;
+    }
   }
-  $view .= '</table>';
 
-  foreach($node_ids as $node_id)
+  // The actual page markup generation
+  foreach ($order->commerce_line_items[LANGUAGE_NONE] as $value)
   {
-    $view .= views_embed_view('offer_additionlal_info', 'page_1', $node_id);
+    $currentpage++;
+  
+    $node_id = bosa_offer_mail_get_node_ids(array($value));
+    if (is_numeric($node_id[0])) 
+    {
+      $line_item_entity = commerce_line_item_load($value['line_item_id']);
+      if($line_item_entity->type == 'product')
+      {
+        $commerce_product_entity = commerce_product_load($line_item_entity->commerce_product[LANGUAGE_NONE][0]['product_id']);
+        $view .= '<table><tr>
+              <td class="left">
+              <div class="header">Lillebælt Waters - VisitMiddelfart</div>
+              <div class="ticket title">Billet oplysninger</div>';
+	$view .= '
+		<div class="text">
+Dear Visitor <br />
+Thank you very much for booking activities at Lillebælt Waters.<br />
+This is your ticket - <u>please bring it when you turn up at your booked activity. </u><br />
+We wish you a pleasant stay, and hope seeing you again. <br /><br />
+
+		</div>
+
+	  ';
+      
+    
+        $view .= 
+          '<span class="label">Produkt: </span><span class="field title">'.$commerce_product_entity->title.'</span><br />'.
+          '<span class="label">Dato og tidspunkt:</span><span class="field">'.$commerce_product_entity->field_offer_dato[LANGUAGE_NONE][0]['value'].'</span><br />'.
+          '<span class="label">Antal: </span><span class="field">'.$line_item_entity->quantity.'</span><br />'.
+          '<span class="label"></span><span class="field">'.$line_item_entity->field_line_item_comment[LANGUAGE_NONE][0]['value'].'</span>';
+
+        $view .= '</td><td class="right"><img src="'.$base_url.'/'.drupal_get_path('module', 'bosa_offer_mail').'/css/img/handtag.png"/></td></tr></table>';
+        $view .= views_embed_view('offer_additionlal_info', 'page_1', $node_id[0]);
+      }
+      
+      // list extra products
+      if(isset($product_reference[$line_item_entity->data['context']]) || !empty($product_reference[$line_item_entity->data['context']['product_ids'][0]]))
+      {
+        $view .= '<div class="extras">Tilkøbsprodukter</div>';
+        foreach($product_reference[$line_item_entity->data['context']['product_ids'][0]] as $product_extras)
+        {
+          $view .= '<span class="label">Produkt: </span><span class="field">'.$product_extras['title'].'</span><br />';
+          $view .= '<span class="label">Antal: </span><span class="field">'.$product_extras['quantity'].'</span><br />';
+          $view .= '<span class="label">Kommentar: </span><span class="field">'.$product_extras['comment'].'</span><br />';
+        }
+      }
+    }
+    // if there are more products on the order we want a pretty page break
+    if($pages > $currentpage)
+    {
+      $view .= '<div class="page-break"></div>';
+    }
   }
+
 
   $view .= '</body></html>';
 
@@ -116,7 +164,9 @@ function _bosa_offer_mail_create_pdf($order){
 
   $view = str_replace('src="http://lillebaeltwaters.bellcom.dk/', 'src="', $view);
 
-  //print $view;
+ //print $view;
+
+  //ie();
 
   $dompdf = new DOMPDF();
 
@@ -124,7 +174,7 @@ function _bosa_offer_mail_create_pdf($order){
   $dompdf->set_paper("a4","portrait");
   $dompdf->render();
 
-  $dompdf->stream('Ordre_'.$order->order_id);
+  $dompdf->stream('Ordre_'.$order->order_id.'.pdf');
 
 }
 
@@ -147,8 +197,10 @@ function bosa_offer_mail_get_node_ids($line_items) {
       ->fieldCondition('field_reference', 'product_id', $product_entity->product_id, '=');
 
     $result = $query->execute();
-    $result = reset($result['node']);
-
+    if(is_array($result['node']))
+    {
+      $result = reset($result['node']);
+    }
     // save node ids
     if (in_array($result->nid, $node_ids))
     {
