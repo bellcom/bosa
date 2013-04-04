@@ -117,10 +117,10 @@ function _bosa_offer_mail_create_pdf($order){
               <div class="ticket title">Billet oplysninger</div>';
 	$view .= '
 		<div class="text">
-Dear Visitor <br />
+Dear Guest<br />
 Thank you very much for booking activities at Lillebælt Waters.<br />
 This is your ticket - <u>please bring it when you turn up at your booked activity. </u><br />
-We wish you a pleasant stay, and hope seeing you again. <br /><br />
+We wish you a pleasant stay, and hope to see you again soon. <br /><br />
 
 		</div>
 

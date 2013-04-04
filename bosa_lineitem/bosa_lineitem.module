@@ -1,6 +1,6 @@
 <?php
 /*
- * Implements hook_form_FORM_ID_alter
+ * Implements hook_form_alter
  *
  * Unsetting standard add to cart form, when the product is set
  * to be sold with 2 prices.
@@ -77,6 +77,11 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
         ),
       );
     }
+    $form['node_id'] = array(
+     '#type' => 'textfield',
+     '#access' => 0,
+     '#value' => $form['#action'],
+    );
     return $form;
   }
 }
@@ -155,14 +160,23 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * @return 
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
+  $path_details = explode('/', $form_state['values']['node_id']);
 
-  $node_path = drupal_lookup_path("source",ltrim($form['#action'], '/'));
+  // if the node doesnt have a url alias
+  if($path_details[2] == 'node') {
+    $nodeid[1] = $path_details[3];
+  }
+  else {
+    $node_path = drupal_lookup_path("source",$path_details[2].'/'.urldecode($path_details[3]), $path_details[1]);
 
-  $nodeid = explode('/', $node_path);
+    $nodeid = explode('/', $node_path);
+  }
 
   global $user;
   $order = commerce_cart_order_load($user->uid);
   $node = node_load($nodeid[1]);
+
+  // create a list of products in the cart
   $cart_products = array();
   foreach ($order->commerce_line_items[LANGUAGE_NONE] as $lineitem)
   {
@@ -176,6 +190,8 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
     
     $cart_products[] =  $line_item_product_id;
   }
+  
+  // create list of referenced products
   $referenced_products = array();
   foreach($node->field_reference[LANGUAGE_NONE] as $reference)
   {
@@ -186,6 +202,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
     }
   }
 
+  // check if these match
   $result = array_intersect($cart_products, $referenced_products);
   
   switch( count($result) )
