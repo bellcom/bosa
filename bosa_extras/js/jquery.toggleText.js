@@ -31,7 +31,6 @@ jQuery(document).ready(function(){
   }
 
   jQuery('#toggleText').click(function(e){
-    console.log('click');
     toggleText();
   });
 

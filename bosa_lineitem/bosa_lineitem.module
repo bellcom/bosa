@@ -14,7 +14,12 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     // if second price fields are set
     if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
     {
-    $price = commerce_currency_format($commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'], "DKK");
+    $current_currency = commerce_multicurrency_get_user_currency_code();
+    $price = $commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+    $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+    $formatted_price = commerce_currency_format($converted_price, $current_currency);
+
+
       // use the extra data and add a new button
       unset($form['submit']);
       unset($form['quantity']);
@@ -39,7 +44,7 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
       $form['text'] = array(
         '#type' => 'item',
         '#weight' => 92,
-        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$price.'  - barn</div>' ,
+        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
       );
 
       $form['quantity2'] = array(
@@ -120,9 +125,13 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
 
   field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
 
+  $current_currency = commerce_multicurrency_get_user_currency_code();
+  $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+  $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+  
   // loading the lineitem into an entity wrapper 
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-  $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+  $line_item_wrapper->commerce_unit_price->amount = $converted_price;
 
   // updating the base price
   $line_item_wrapper->commerce_unit_price->data = array(
@@ -130,8 +139,8 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
       0 => array(
         'name' => 'base_price',
         'price' => array(
-          'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
-          'currency_code' => 'dkk'
+          'amount' => $converted_price,
+          'currency_code' => $current_currency
         ),
       ),
     ),
@@ -196,7 +205,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
   foreach($node->field_reference[LANGUAGE_NONE] as $reference)
   {
     $product_entity = commerce_product_load($reference['product_id']);
-    if( $product_entity->type == "offer" )
+    if( $product_entity->type == "offer" || $product_entity->type == "produkt-uden-lager-dato" || $product_entity->type == "produkt-uden-lager"  )
     {
       $referenced_products[] = $reference['product_id'];
     }
@@ -267,20 +276,24 @@ function bosa_lineitem_calculate_sell_price($line_item){
 
       if(isset($product->field_2nd_price[LANGUAGE_NONE][0]['amount']))
       {
+        $current_currency = commerce_multicurrency_get_user_currency_code();
+        $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+        $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+
         // loading the lineitem into an entity wrapper
         $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
         
         // updating the unit price
-        $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
-
+        $line_item_wrapper->commerce_unit_price->amount = $converted_price;
+        
         // updating the base price
         $line_item_wrapper->commerce_unit_price->data = array(
           'components' => array(
             0 => array(
               'name' => 'base_price',
               'price' => array(
-                'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
-                'currency_code' => 'DKK'
+                'amount' => $converted_price,
+                'currency_code' => $current_currency
               ),
             ),
           ),

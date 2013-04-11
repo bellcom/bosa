@@ -29,11 +29,15 @@ function bosa_reservation_menu() {
  * Implements hook_cron()
  */
 function bosa_reservation_cron() {
+
+  // renew payment for resevations
   _bosa_reservation_check_reservations();
 
   // Check all products for deadline.
-  //  If product is > deadline -1 day
-  //    Fire product cancelled event
+  _bosa_reservation_cancel_reservations();
+
+  // Handle payment for the reserved activities
+  _bosa_reservation_payment();
 }
 
 /**
@@ -140,4 +144,247 @@ function _bosa_reservation_check_reservations() {
       }
     }
   }
+}
+
+/**
+ * Helper function for cancelling reservations for product with insufficient attendance
+ *
+ * <tth@bellcom.dk>
+ */
+function _bosa_reservation_cancel_reservations() {
+  // EntityFieldQuery and mySQL 'NOW()' doesnt seem to be friends
+  $time = date('Y-m-d H:m:s');
+
+  // fetch products between the activity date/time and last reservation date/time
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'commerce_product')
+      ->propertyCondition('type', 'offer')
+      ->propertyCondition('status', 1)
+      ->fieldCondition('field_offer_dato', 'value', $time, '>') 
+      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $time, '<') 
+      ->execute();
+  
+  $product_ids = array_keys(array_shift($result));
+
+  foreach($product_ids as $product_id) 
+  {
+    $info = _bosa_reservation_product_info($product_id);
+
+    if(empty($info['orders']))
+    {
+      continue;
+    }
+    if($info['count'] < $info['min'])
+    {
+      // invoke rule event, sending mails
+      $product = commerce_product_load($product_id);
+      
+      rules_invoke_event('bosa_reservation_product_close_to_deadline', $product); 
+
+      // Doin some logging
+      watchdog('bosa_reservation', 'cancel product: @product_id', array('@product_id' => $product_id), WATCHDOG_NOTICE);
+
+      // Disable the product, so customers cant buy it again, and the mail action is not triggered again
+      $product->status = 0;
+      commerce_product_save($product);
+    }
+  }
+}
+
+
+/**
+ * Handles payment for reserved products
+ *
+ * IF product is canceled:
+ *  AND order is completed:
+ *   Refund relevant amount
+ *  AND order is not completed:
+ *   Remove lineitems from order
+ *    OR
+ *     Cancel order if no other products are bought
+ */
+function _bosa_reservation_payment() {
+  // EntityFieldQuery and mySQL 'NOW()' doesnt seem to be friends
+  $time = date('Y-m-d H:m:s');
+
+  // fetch canceled products between the activity date/time and last reservation date/time
+  $canceled_query = new EntityFieldQuery();
+  $result = $canceled_query->entityCondition('entity_type', 'commerce_product')
+      ->propertyCondition('type', 'offer')
+      ->propertyCondition('status', 0)
+      ->fieldCondition('field_offer_dato', 'value', $time, '>') 
+      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $time, '<') 
+      ->execute();
+ 
+  $canceled_product_ids = array_keys(array_shift($result));
+
+  // fetch active products between the activity date/time and last reservation date/time
+  $active_query = new EntityFieldQuery();
+  $result = $active_query->entityCondition('entity_type', 'commerce_product')
+      ->propertyCondition('type', 'offer')
+      ->propertyCondition('status', 1)
+      ->fieldCondition('field_offer_dato', 'value', $time, '>') 
+      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $time, '<') 
+      ->execute();
+ 
+  $active_product_ids = array_keys(array_shift($result));
+
+  foreach($canceled_product_ids as $product_id)
+  {
+    $info = _bosa_reservation_product_info($product_id);
+
+    // No orders, no payment to handle
+    if(empty($info['orders']))
+    {
+      continue;
+    }
+
+    $orders = commerce_order_load_multiple($info['orders']);
+
+    foreach( $orders as $order) 
+    {
+      $order_total_amount = $order->commerce_order_total[LANGUAGE_NONE][0]['data']['components'][0]['price']['amount'];
+
+      $line_items = commerce_line_item_load_multiple($order->commerce_line_items[LANGUAGE_NONE]); 
+      $referenced_line_item_ids = array();
+      $line_item_ids = array();
+      $line_item_price = '';
+      $referenced_line_item_price = '';
+
+      foreach($line_items as $key => $line_item)
+      {
+        // Get administration tax, save for later use
+        if($line_item->line_item_label == 'Administrationsgebyr')
+        {
+          $administration_tax = $line_item->commerce_total[LANGUAGE_NONE][0]['amount'];
+          continue;
+        }
+
+        $line_item_product_id = $line_item->commerce_product[LANGUAGE_NONE][0]['product_id'];
+        $line_item_product = commerce_product_load($line_item_product_id);
+
+        if($line_item_product_id == $product_id)
+        {
+          $line_item_quantity = $line_item->quantity;
+          $line_item_price += $line_item->commerce_total[LANGUAGE_NONE][0]['amount'];
+          $line_item_ids[] = $line_item->line_item_id;
+        }
+
+        // Get prices for products that are not reservated products
+        if($line_item_product->type !== 'offer')
+        {
+          //error_log(__FILE__.':'.__LINE__. print_r($line_item, 1)); // tth@bellcom.dk debugging
+          $other_line_item_price += $line_item->commerce_total[LANGUAGE_NONE][0]['amount'];
+        }
+
+        // Check if the product is referenced to the reservated product.
+        if(!empty($line_item->field_line_item_ref))
+        {
+          if($line_item->field_line_item_ref[LANGUAGE_NONE][0]['value'] == $product_id)
+          {
+            // Save these so we can remove them also, if needed
+            $referenced_line_item_ids[] = $line_item->line_item_id;
+            $referenced_line_item_price += $line_item->commerce_total[LANGUAGE_NONE][0]['amount'];
+          }
+        }
+
+      }
+
+      // If the orders total amount is equal to the amounts of line_items, the order can be cancelled
+      if($line_item_price + $referenced_line_item_price === $order_total_amount) {
+
+        // Doin some logging
+        watchdog('bosa_reservation', 'cancel order: @order', array('@order' => print_r($order, 1)), WATCHDOG_NOTICE);
+
+        // Save canceled order
+        $order->status = 'canceled';
+        commerce_order_save($order);
+      }
+      else
+      {
+        if($order->status == 'completed') {
+          // Doin some logging
+          watchdog('bosa_reservation', 'order is already completed:  order: @order', array('@order' => print_r($order, 1)), WATCHDOG_NOTICE);
+          // Create transaction for refund
+          $last_transaction = commerce_payment_fetch_last_payment_transaction($order->order_id);
+          $payment_method = commerce_payment_method_instance_load($last_transaction->instance_id);
+          $qp = new Quickpay($payment_method['settings']);
+          $txn = $qp->transaction($last_transaction->remote_id);
+
+          $amount = commerce_currency_amount_to_decimal(($line_item_price + $referenced_line_item_price), $transaction->currency_code);
+
+          // QuickPay refunc amount
+          $txn->refund($amount);
+
+          $transaction->payload[REQUEST_TIME] = $txn;
+
+          if ($txn->success()) {
+            // Doin some logging
+            watchdog('bosa_reservation', 'refund completed order: @order', array('@order' => $order), WATCHDOG_NOTICE);
+            
+            $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+          }
+          else {
+            // Doin some logging
+            watchdog('bosa_reservation', 'refund failed order_id: @order', array('@order' => $order), WATCHDOG_NOTICE);
+            
+            $transaction->status = COMMERCE_PAYMENT_STATUS_FAILURE;
+          }
+          commerce_payment_transaction_save($transaction);
+
+        }
+        else
+        {
+          // Doin some logging
+          watchdog('bosa_reservation', 'order not completed, delete line_items:  order: @order, @line_item_ids', array('@order' => print_r($order, 1), '@line_item_ids' => print_r($line_item_ids, 1)), WATCHDOG_NOTICE);
+          
+          // Delete the lineitems that are not fulfilled
+          commerce_line_item_delete_multiple($line_item_ids);
+
+          // Delete referenced lineitems
+          if(!empty($referenced_line_item_ids))
+          {
+            commerce_line_item_delete_multiple($referenced_line_item_ids);
+          }
+
+          // Update order balance
+          // Fetch transaction id for order, and update amount
+          $transaction = commerce_payment_fetch_last_payment_transaction($order->order_id);
+
+          // Update transaction amount
+          $transaction->amount = ($transaction->amount - ($line_item_price + $referenced_line_item_price));
+
+          commerce_payment_transaction_save($transaction);
+
+          // Set status and save order
+          $order->status = 'processing';
+          commerce_order_save($order);
+        }
+      }
+    } 
+  } // <-- end foreach canceled products
+
+  foreach($active_product_ids as $product_id)
+  {
+    $info = _bosa_reservation_product_info($product_id);
+
+    if($info['count'] > $info['min'])
+    {
+      // Update order status and capture payment
+      $orders = commerce_order_load_multiple($info['orders']);
+
+      foreach( $orders as $order) 
+      {
+        // Capture payment
+        if($order->status !== 'completed' && $order->status !== 'canceled')
+        {
+          watchdog('bosa_reservation', 'complete order:  order_id: @order', array('@order' => print_r($order, 1)), WATCHDOG_NOTICE);
+          commerce_quickpay_capture_action($order);
+
+          $order->status = 'completed';
+          commerce_order_save($order);
+        }
+      }
+    }
+  } // <-- end foreach active products
 }

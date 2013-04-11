@@ -1,0 +1,11 @@
+name = bosa_reservation_feature
+description = Various things for bosa_reservation module (log view...)
+core = 7.x
+package = Features
+version = 7.x-1.0
+project = bosa_reservation_feature
+dependencies[] = views
+dependencies[] = views_watchdog
+features[ctools][] = views:views_default:3.0
+features[features_api][] = api:1
+features[views_view][] = bosa_reservation_log
