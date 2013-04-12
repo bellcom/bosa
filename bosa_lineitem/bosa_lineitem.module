@@ -12,6 +12,8 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
     
     // if second price fields are set
+    if (!empty($commerce_product->field_2nd_price_select))
+    {
     if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
     {
     $current_currency = commerce_multicurrency_get_user_currency_code();
@@ -19,6 +21,13 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
     $formatted_price = commerce_currency_format($converted_price, $current_currency);
 
+    $text = '&nbsp';
+
+    if (!empty($commerce_product->field_venteliste_check)) {
+      if ($commerce_product->field_venteliste_check[LANGUAGE_NONE][0]['value'] == 1) {
+        $text = t('Waitinglist');
+      }
+    }
 
       // use the extra data and add a new button
       unset($form['submit']);
@@ -44,7 +53,7 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
       $form['text'] = array(
         '#type' => 'item',
         '#weight' => 92,
-        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
+        '#markup' => '<div class="date">' . $text . '</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
       );
 
       $form['quantity2'] = array(
@@ -67,6 +76,7 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
         '#suffix' => '<div id="refresh"></div>',
       );
 
+    }
     }
     if ($commerce_product->type == "offer_extras_custom")
     {
