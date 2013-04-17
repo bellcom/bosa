@@ -362,7 +362,7 @@ function bosa_attendees_send_mail(){
       global $base_url;
 
       $key = md5($entity->sku);
-      $attendees = 'Du kan se deltagerlisten her:'. strip_tags($base_url) .'/attendees/'. $entity->product_id .'/'.$key ;
+      $attendees = 'Du kan se deltagerlisten her: '. strip_tags($base_url) .'/attendees/'. $entity->product_id .'/'.$key ;
       //error_log(__FILE__.':'.__LINE__. print_r($attendees, 1)); // tth@bellcom.dk debugging
 
       $email = $entity->field_seller_email[LANGUAGE_NONE][0]['email'];
@@ -396,5 +396,3 @@ function bosa_attendees_send_mail(){
   variable_set('bosa_attendees_sent_list_ids', serialize($ids));
 }
 }
-
-

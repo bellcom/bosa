@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the BOSA feature feature.
+ */
+
+include_once 'bosa_feature.features.inc';

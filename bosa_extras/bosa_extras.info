@@ -1,4 +1,4 @@
-name = bosa_extras
+name = BOSA Extras
 description = Ekstra features til lw løsning
 core = 7.x
 version = "7.x-0.1-dev"
