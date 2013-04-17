@@ -1,4 +1,4 @@
-name = bosa_reservation_feature
+name = BOSA reservation feature
 description = Various things for bosa_reservation module (log view...)
 core = 7.x
 package = Features
