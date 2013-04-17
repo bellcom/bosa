@@ -23,7 +23,7 @@ module pack for BOSA
 * something extra
 
 ### bosa_feature
-*
+* 
 
 ### bosa_lineitem
 * Handles ability to sell product with 2 prices
