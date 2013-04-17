@@ -11,8 +11,9 @@ function bosa_extras_init() {
 
   if(arg(0) == 'checkout')
   {
+    global $language;
     $node = node_load(15);
-    $terms = array('terms' => $node->body[LANGUAGE_NONE][0]['safe_value']);
+    $terms = array('terms' => $node->body[$language->language][0]['safe_value']);
 
     drupal_add_js(array('bosa_extras' => $terms), 'setting');
     drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.Terms.js');
