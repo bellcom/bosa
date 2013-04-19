@@ -34,6 +34,9 @@ function bosa_offer_mail_pdf($order_id, $arg){
   global $user;
 
   $order = commerce_order_load($order_id);
+
+  entity_get_controller('commerce_order')->resetCache(array($order->order_id));
+
   $key = $order->commerce_customer_billing[LANGUAGE_NONE][0]['profile_id'];
   $key .= $order->created;
 
@@ -66,12 +69,11 @@ function bosa_offer_mail_pdf($order_id, $arg){
  **/
 function _bosa_offer_mail_create_pdf($order){
   require_once libraries_get_path('dompdf') . '/dompdf_config.inc.php';
+
   global $base_url;
 
-  $node_ids = bosa_offer_mail_get_node_ids($order->commerce_line_items[LANGUAGE_NONE]);
-
+  $currentpage = 0;
   $pages = 0;
-  $current_page = 0;
 
   $view = '<html>
     <head>
@@ -105,7 +107,7 @@ function _bosa_offer_mail_create_pdf($order){
     $currentpage++;
   
     $node_id = bosa_offer_mail_get_node_ids(array($value));
-    if (is_numeric($node_id[0])) 
+    if (is_array($node_id)) 
     {
       $line_item_entity = commerce_line_item_load($value['line_item_id']);
       if($line_item_entity->type == 'product')
@@ -162,11 +164,13 @@ We wish you a pleasant stay, and hope to see you again soon. <br /><br />
 
   //$view = file_get_contents('http://lillebaeltwaters.bellcom.dk/offer_mail_view/' . $id_url); 
 
-  $view = str_replace('src="http://lillebaeltwaters.bellcom.dk/', 'src="', $view);
+  $view = str_replace($base_url.'/', '', $view);
 
- //print $view;
+  error_log(print_r($view, 1));
 
-  //ie();
+  //print $view;
+
+  //die();
 
   $dompdf = new DOMPDF();
 
@@ -186,10 +190,14 @@ function bosa_offer_mail_get_node_ids($line_items) {
   {
     // load lineitem to get line_item_label
     $line_item_entity = commerce_line_item_load($line_item['line_item_id']);
+    
 
     // load product to get id
     $product_entity = commerce_product_load_by_sku($line_item_entity->line_item_label);
 
+    if(!is_object($product_entity)){
+      continue;
+    }
     // entity search for nodes with products attached
     $query = new EntityFieldQuery;
 

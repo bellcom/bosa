@@ -142,6 +142,9 @@ function _bosa_reservation_check_reservations() {
           rules_invoke_event('bosa_reservation_order_is_about_to_expire', $order);
         }
       }
+     
+    entity_get_controller('commerce_order')->resetCache(array($order->order_id));
+
     }
   }
 }
