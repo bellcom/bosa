@@ -12,9 +12,18 @@
  * Implements hook_cron
  */
 function bosa_cron() {
-  /*
-   * Automated abandoned carts cleanup
-   */
+  // For some reason the cache_form, grows to enourmous sizes,
+  // we clean up a little earlier that Drupal normally does
+
+  $expiretime = time() - '3600';
+
+  $result = db_delete('cache_form')
+	->condition('created', $expiretime, '<')
+	->execute();
+
+  //
+  // Automated abandoned carts cleanup
+  //
 
   // We want to fetch the carts older than 24hours
   $expiredOrder = time() - '86400';
