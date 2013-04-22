@@ -65,7 +65,7 @@ function bosa_feature_default_page_manager_pages() {
             'rids' => array(
               0 => 3,
               1 => 5,
-              2 => 6,
+              2 => 7,
             ),
           ),
           'context' => 'logged-in-user',
@@ -168,7 +168,7 @@ function bosa_feature_default_page_manager_pages() {
           'name' => 'role',
           'settings' => array(
             'rids' => array(
-              0 => 7,
+              0 => 6,
             ),
           ),
           'context' => 'logged-in-user',
