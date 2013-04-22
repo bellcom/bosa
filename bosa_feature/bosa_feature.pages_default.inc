@@ -57,6 +57,23 @@ function bosa_feature_default_page_manager_pages() {
     'css' => '',
     'contexts' => array(),
     'relationships' => array(),
+    'access' => array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'role',
+          'settings' => array(
+            'rids' => array(
+              0 => 3,
+              1 => 5,
+              2 => 6,
+            ),
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+      'logic' => 'and',
+    ),
   );
   $display = new panels_display();
   $display->layout = 'twocol_25_75_stacked';
@@ -88,10 +105,7 @@ function bosa_feature_default_page_manager_pages() {
     $pane->configuration = array(
       'admin_title' => '',
       'title' => 'Aktør muligheder',
-      'body' => '<h2>&nbsp;</h2><h2>Tilføj:</h2><p><a href="#overlay=admin/commerce/products/add/offer">Produkter</a><br /> <a href="#overlay=admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br />
-<a href="/admin/commerce/products/manage_repeater">Gentagne produkter</a><br /><br />
-
- <a href="#overlay=node/add/offer ">Produkt visning</a></p><h2>Se:</h2><p><a href="#overlay=admin/commerce/products">Produkter</a><br /> <a href="#overlay=offerlist">Produkt visninger</a><br /><a href="#overlay=admin/commerce/reports_products">Salgsopgørelse</a></p>',
+      'body' => '<h2>&nbsp;</h2><h2>Tilføj:</h2><p><a href="#overlay=admin/commerce/products/add/offer">Produkter</a><br /> <a href="#overlay=admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br /> <a href="/admin/commerce/products/manage_repeater">Gentagne produkter</a><br /> <a href="#overlay=node/add/offer ">Produkt visning</a></p><h2>Se:</h2><p><a href="#overlay=admin/commerce/products">Produkter</a><br /> <a href="#overlay=offerlist">Produkt visninger</a><br /><a href="#overlay=admin/commerce/reports_products">Salgsopgørelse</a></p>',
       'format' => 'full_html',
       'substitute' => TRUE,
     );
@@ -126,6 +140,84 @@ function bosa_feature_default_page_manager_pages() {
     $pane->locks = array();
     $display->content['new-2'] = $pane;
     $display->panels['main_content_col_2'][0] = 'new-2';
+  $display->hide_title = PANELS_TITLE_FIXED;
+  $display->title_pane = '0';
+  $handler->conf['display'] = $display;
+  $page->default_handlers[$handler->name] = $handler;
+  $handler = new stdClass();
+  $handler->disabled = FALSE; /* Edit this to true to make a default handler disabled initially */
+  $handler->api_version = 1;
+  $handler->name = 'page_offer_publisher_panel_context_2';
+  $handler->task = 'page';
+  $handler->subtask = 'offer_publisher';
+  $handler->handler = 'panel_context';
+  $handler->weight = 1;
+  $handler->conf = array(
+    'title' => 'Aktivitet',
+    'no_blocks' => 0,
+    'pipeline' => 'standard',
+    'body_classes_to_remove' => '',
+    'body_classes_to_add' => '',
+    'css_id' => '',
+    'css' => '',
+    'contexts' => array(),
+    'relationships' => array(),
+    'access' => array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'role',
+          'settings' => array(
+            'rids' => array(
+              0 => 7,
+            ),
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+    ),
+  );
+  $display = new panels_display();
+  $display->layout = 'twocol_25_75_stacked';
+  $display->layout_settings = array();
+  $display->panel_settings = array(
+    'style_settings' => array(
+      'default' => NULL,
+      'center' => NULL,
+      'left' => NULL,
+      'right' => NULL,
+      'nav' => NULL,
+      'top' => NULL,
+      'main_content_col_1' => NULL,
+      'main_content_col_2' => NULL,
+      'bottom_row' => NULL,
+    ),
+  );
+  $display->cache = array();
+  $display->title = 'Offer publisher';
+  $display->content = array();
+  $display->panels = array();
+    $pane = new stdClass();
+    $pane->pid = 'new-3';
+    $pane->panel = 'main_content_col_2';
+    $pane->type = 'block';
+    $pane->subtype = 'bosa_attendees-bosa_attendees';
+    $pane->shown = TRUE;
+    $pane->access = array();
+    $pane->configuration = array(
+      'override_title' => 1,
+      'override_title_text' => 'Deltagerliste',
+    );
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 0;
+    $pane->locks = array();
+    $display->content['new-3'] = $pane;
+    $display->panels['main_content_col_2'][0] = 'new-3';
   $display->hide_title = PANELS_TITLE_FIXED;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;
