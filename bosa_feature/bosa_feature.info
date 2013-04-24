@@ -27,6 +27,7 @@ features[features_api][] = api:1
 features[field][] = commerce_customer_profile-billing-commerce_customer_address
 features[field][] = commerce_customer_profile-billing-field_conditions
 features[field][] = commerce_customer_profile-billing-field_mobile_phone
+features[field][] = node-offer-title_field
 features[image][] = offer_list
 features[image][] = offer_view_first
 features[image][] = offer_view_second

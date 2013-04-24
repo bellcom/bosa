@@ -10,6 +10,86 @@
 function bosa_products_feature_field_default_fields() {
   $fields = array();
 
+  // Exported field: 'commerce_product-butik_produkt-title_field'.
+  $fields['commerce_product-butik_produkt-title_field'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'title_field',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'max_length' => 255,
+      ),
+      'translatable' => '1',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'butik_produkt',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 1,
+        ),
+        'line_item' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'node_teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'commerce_product',
+      'field_name' => 'title_field',
+      'label' => 'Titel',
+      'required' => TRUE,
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'hide_label' => array(
+          'entity' => FALSE,
+          'page' => FALSE,
+        ),
+        'text_processing' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'module' => 'text',
+        'settings' => array(
+          'size' => 60,
+        ),
+        'type' => 'text_textfield',
+        'weight' => -5,
+      ),
+    ),
+  );
+
   // Exported field: 'commerce_product-offer-commerce_price'.
   $fields['commerce_product-offer-commerce_price'] = array(
     'field_config' => array(
@@ -812,6 +892,86 @@ function bosa_products_feature_field_default_fields() {
     ),
   );
 
+  // Exported field: 'commerce_product-offer-title_field'.
+  $fields['commerce_product-offer-title_field'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'title_field',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'max_length' => 255,
+      ),
+      'translatable' => '1',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'offer',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 11,
+        ),
+        'line_item' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'node_teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'commerce_product',
+      'field_name' => 'title_field',
+      'label' => 'Titel',
+      'required' => TRUE,
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'hide_label' => array(
+          'entity' => FALSE,
+          'page' => FALSE,
+        ),
+        'text_processing' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'module' => 'text',
+        'settings' => array(
+          'size' => 60,
+        ),
+        'type' => 'text_textfield',
+        'weight' => -5,
+      ),
+    ),
+  );
+
   // Exported field: 'commerce_product-offer_extras_custom-commerce_price'.
   $fields['commerce_product-offer_extras_custom-commerce_price'] = array(
     'field_config' => array(
@@ -1099,6 +1259,86 @@ function bosa_products_feature_field_default_fields() {
     ),
   );
 
+  // Exported field: 'commerce_product-offer_extras_custom-title_field'.
+  $fields['commerce_product-offer_extras_custom-title_field'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'title_field',
+      'foreign keys' => array(
+        'format' => array(
+          'columns' => array(
+            'format' => 'format',
+          ),
+          'table' => 'filter_format',
+        ),
+      ),
+      'indexes' => array(
+        'format' => array(
+          0 => 'format',
+        ),
+      ),
+      'locked' => '0',
+      'module' => 'text',
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'max_length' => 255,
+      ),
+      'translatable' => '1',
+      'type' => 'text',
+    ),
+    'field_instance' => array(
+      'bundle' => 'offer_extras_custom',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'text',
+          'settings' => array(),
+          'type' => 'text_default',
+          'weight' => 3,
+        ),
+        'line_item' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'node_teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'commerce_product',
+      'field_name' => 'title_field',
+      'label' => 'Titel',
+      'required' => TRUE,
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'hide_label' => array(
+          'entity' => FALSE,
+          'page' => FALSE,
+        ),
+        'text_processing' => 0,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'module' => 'text',
+        'settings' => array(
+          'size' => 60,
+        ),
+        'type' => 'text_textfield',
+        'weight' => -5,
+      ),
+    ),
+  );
+
   // Translatables
   // Included for use with string extractors like potx.
   t('Aflysnings mail');
@@ -1112,6 +1352,7 @@ function bosa_products_feature_field_default_fields() {
   t('Mindste antal');
   t('Price');
   t('Skal dette produkt have 2 priser (Pris for børn)?');
+  t('Titel');
   t('Venteliste');
   t('Vis teksten "venteliste" under produktets dato/tidspunk, - hvis produktet har 2 priser');
 
