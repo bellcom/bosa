@@ -287,6 +287,7 @@ function bosa_feature_views_default_views() {
     'commerce_customer_address_1' => 'commerce_customer_address_1',
     'commerce_line_items' => 'commerce_line_items',
     'view_order' => 'view_order',
+    'order_number_2' => 'view_order',
   );
   $handler->display->display_options['style_options']['default'] = 'order_number';
   $handler->display->display_options['style_options']['info'] = array(
@@ -362,6 +363,13 @@ function bosa_feature_views_default_views() {
       'empty_column' => 0,
     ),
     'view_order' => array(
+      'align' => '',
+      'separator' => '',
+      'empty_column' => 0,
+    ),
+    'order_number_2' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
@@ -599,6 +607,16 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['fields']['view_order']['label'] = 'Ordre';
   $handler->display->display_options['fields']['view_order']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['view_order']['alter']['text'] = '[view_order] ';
+  /* Felt: Commerce Ordre: Ordrenummer */
+  $handler->display->display_options['fields']['order_number_2']['id'] = 'order_number_2';
+  $handler->display->display_options['fields']['order_number_2']['table'] = 'commerce_order';
+  $handler->display->display_options['fields']['order_number_2']['field'] = 'order_number';
+  $handler->display->display_options['fields']['order_number_2']['label'] = '';
+  $handler->display->display_options['fields']['order_number_2']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['order_number_2']['alter']['text'] = 'Voucher';
+  $handler->display->display_options['fields']['order_number_2']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['order_number_2']['alter']['path'] = 'aktiviteter_pdf/[order_number]';
+  $handler->display->display_options['fields']['order_number_2']['element_label_colon'] = FALSE;
   $handler->display->display_options['path'] = 'admin/commerce/orders/custom_list';
   $handler->display->display_options['menu']['type'] = 'default tab';
   $handler->display->display_options['menu']['title'] = 'LW Ordre';
