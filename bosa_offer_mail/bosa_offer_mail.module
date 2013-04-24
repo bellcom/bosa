@@ -135,7 +135,7 @@ We wish you a pleasant stay, and hope to see you again soon. <br /><br />
           '<span class="label">Antal: </span><span class="field">'.$line_item_entity->quantity.'</span><br />'.
           '<span class="label"></span><span class="field">'.$line_item_entity->field_line_item_comment[LANGUAGE_NONE][0]['value'].'</span>';
 
-        $view .= '</td><td class="right"><img src="'.$base_url.'/'.drupal_get_path('module', 'bosa_offer_mail').'/css/img/handtag.png"/></td></tr></table>';
+        $view .= '</td><td class="right"><img src="'.drupal_get_path('module', 'bosa_offer_mail').'/css/img/handtag.png"/></td></tr></table>';
         $view .= views_embed_view('offer_additionlal_info', 'page_1', $node_id[0]);
       }
       
@@ -166,7 +166,7 @@ We wish you a pleasant stay, and hope to see you again soon. <br /><br />
 
   $view = str_replace($base_url.'/', '', $view);
 
-  error_log(print_r($view, 1));
+  //error_log(print_r($view, 1));
 
   //print $view;
 
