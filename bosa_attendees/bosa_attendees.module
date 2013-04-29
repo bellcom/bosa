@@ -73,6 +73,11 @@ function bosa_attendees_form($form, &$form_state) {
    ->fieldCondition('field_offer_dato', 'value', 'NOW()', '<'); 
  
   $products = $productsQuery->execute();
+ 
+  if ( $_SERVER['REMOTE_ADDR'] == '90.185.206.100' )
+  {
+    echo "Hest!";
+  } 
 
   $offerOptions = array('0' => 'Vælg');
   if( isset($products['commerce_product']))
@@ -216,7 +221,7 @@ function _bosa_attendees_from_line_item_id($line_item_id)
 
   if(isset($orderEntity->status))
   {
-    if ($orderEntity->status == 'completed')
+    if ($orderEntity->status !== 'cart' || $orderEntity->status !== 'cancelled' )
     {
       $wrapper = entity_metadata_wrapper('commerce_order', $orderEntity);
       $address = $wrapper->commerce_customer_billing->commerce_customer_address->value();

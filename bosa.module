@@ -30,7 +30,7 @@ function bosa_cron() {
 
   // Prepare statement to get order_ids
   $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status != :status AND changed < :changed", array(
-    ':status' => 'completed',
+    ':status' => 'cart',
     ':changed' => $expiredOrder,
       ));
 
@@ -44,7 +44,7 @@ function bosa_cron() {
   }
 
   // Use commerce_order_delete_multiple function to cleanly delete the orders
-  commerce_order_delete_multiple($oldOrderIds);
+//  commerce_order_delete_multiple($oldOrderIds);
 
   // Run function that prepares most popular offers
   bosa_popular_offers_cron();
