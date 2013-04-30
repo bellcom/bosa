@@ -667,5 +667,122 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['defaults']['filters'] = FALSE;
   $export['custom_orders_list'] = $view;
 
+  $view = new view();
+  $view->name = 'menu_shopping_cart_block';
+  $view->description = 'Display a list of line items added to cart.';
+  $view->tag = 'commerce';
+  $view->base_table = 'commerce_order';
+  $view->human_name = 'menu Shopping cart block';
+  $view->core = 0;
+  $view->api_version = '3.0';
+  $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+
+  /* Display: Defaults */
+  $handler = $view->new_display('default', 'Defaults', 'default');
+  $handler->display->display_options['title'] = 'menu shopping cart block';
+  $handler->display->display_options['use_ajax'] = TRUE;
+  $handler->display->display_options['use_more_always'] = FALSE;
+  $handler->display->display_options['use_more_text'] = 'mere';
+  $handler->display->display_options['group_by'] = TRUE;
+  $handler->display->display_options['access']['type'] = 'none';
+  $handler->display->display_options['cache']['type'] = 'none';
+  $handler->display->display_options['query']['type'] = 'views_query';
+  $handler->display->display_options['query']['options']['query_comment'] = FALSE;
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
+  $handler->display->display_options['exposed_form']['options']['submit_button'] = 'Udfør';
+  $handler->display->display_options['exposed_form']['options']['reset_button_label'] = 'Gendan';
+  $handler->display->display_options['exposed_form']['options']['exposed_sorts_label'] = 'Sortér efter';
+  $handler->display->display_options['exposed_form']['options']['sort_asc_label'] = 'Stigende';
+  $handler->display->display_options['exposed_form']['options']['sort_desc_label'] = 'Faldende';
+  $handler->display->display_options['pager']['type'] = 'none';
+  $handler->display->display_options['style_plugin'] = 'table';
+  $handler->display->display_options['style_options']['columns'] = array(
+    'quantity' => 'quantity',
+    'commerce_display_path' => 'commerce_display_path',
+    'line_item_title' => 'line_item_title',
+    'commerce_total' => 'commerce_total',
+  );
+  $handler->display->display_options['style_options']['default'] = '-1';
+  $handler->display->display_options['style_options']['info'] = array(
+    'quantity' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+    ),
+    'commerce_display_path' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => '',
+      'separator' => '',
+    ),
+    'line_item_title' => array(
+      'align' => '',
+      'separator' => '',
+    ),
+    'commerce_total' => array(
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
+      'align' => 'views-align-right',
+      'separator' => '',
+    ),
+  );
+  /* Sidefod: Global: Tekstområde */
+  $handler->display->display_options['footer']['area']['id'] = 'area';
+  $handler->display->display_options['footer']['area']['table'] = 'views';
+  $handler->display->display_options['footer']['area']['field'] = 'area';
+  $handler->display->display_options['footer']['area']['content'] = '<a href="/cart">Til indkøbskurven</a>';
+  $handler->display->display_options['footer']['area']['format'] = 'filtered_html';
+  /* Sidefod: Commerce Line Item: Varelinjeresumé */
+  $handler->display->display_options['footer']['line_item_summary']['id'] = 'line_item_summary';
+  $handler->display->display_options['footer']['line_item_summary']['table'] = 'commerce_line_item';
+  $handler->display->display_options['footer']['line_item_summary']['field'] = 'line_item_summary';
+  $handler->display->display_options['footer']['line_item_summary']['empty'] = TRUE;
+  $handler->display->display_options['footer']['line_item_summary']['info'] = array(
+    'quantity' => 'quantity',
+    'total' => 'total',
+  );
+  /* Forbindelse: Commerce Order: Refererede varelinje */
+  $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['id'] = 'commerce_line_items_line_item_id';
+  $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['table'] = 'field_data_commerce_line_items';
+  $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['field'] = 'commerce_line_items_line_item_id';
+  $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['required'] = TRUE;
+  /* Felt: SUM(Commerce Line Item: Mængde) */
+  $handler->display->display_options['fields']['quantity']['id'] = 'quantity';
+  $handler->display->display_options['fields']['quantity']['table'] = 'commerce_line_item';
+  $handler->display->display_options['fields']['quantity']['field'] = 'quantity';
+  $handler->display->display_options['fields']['quantity']['relationship'] = 'commerce_line_items_line_item_id';
+  $handler->display->display_options['fields']['quantity']['group_type'] = 'sum';
+  $handler->display->display_options['fields']['quantity']['label'] = '';
+  $handler->display->display_options['fields']['quantity']['alter']['alter_text'] = TRUE;
+  $handler->display->display_options['fields']['quantity']['alter']['text'] = '<span style="display: none;"></span>';
+  $handler->display->display_options['fields']['quantity']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['quantity']['precision'] = '0';
+  /* Sorteringskriterie: Commerce Line Item: Varelinje ID */
+  $handler->display->display_options['sorts']['line_item_id']['id'] = 'line_item_id';
+  $handler->display->display_options['sorts']['line_item_id']['table'] = 'commerce_line_item';
+  $handler->display->display_options['sorts']['line_item_id']['field'] = 'line_item_id';
+  $handler->display->display_options['sorts']['line_item_id']['relationship'] = 'commerce_line_items_line_item_id';
+  /* Kontekstuelt filter: Commerce Ordre: Ordre ID */
+  $handler->display->display_options['arguments']['order_id']['id'] = 'order_id';
+  $handler->display->display_options['arguments']['order_id']['table'] = 'commerce_order';
+  $handler->display->display_options['arguments']['order_id']['field'] = 'order_id';
+  $handler->display->display_options['arguments']['order_id']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['order_id']['default_argument_type'] = 'commerce_cart_current_cart_order_id';
+  $handler->display->display_options['arguments']['order_id']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['order_id']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['order_id']['summary_options']['items_per_page'] = '25';
+  /* Filterkriterie: Commerce Line Item: Varelinjen er af en produktvarelinjetype */
+  $handler->display->display_options['filters']['product_line_item_type']['id'] = 'product_line_item_type';
+  $handler->display->display_options['filters']['product_line_item_type']['table'] = 'commerce_line_item';
+  $handler->display->display_options['filters']['product_line_item_type']['field'] = 'product_line_item_type';
+  $handler->display->display_options['filters']['product_line_item_type']['relationship'] = 'commerce_line_items_line_item_id';
+  $handler->display->display_options['filters']['product_line_item_type']['value'] = '1';
+
+  /* Display: Blok */
+  $handler = $view->new_display('block', 'Blok', 'block_1');
+  $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
+  $export['menu_shopping_cart_block'] = $view;
+
   return $export;
 }

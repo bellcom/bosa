@@ -121,6 +121,49 @@ function bosa_feature_default_page_manager_pages() {
     $display->panels['main_content_col_1'][0] = 'new-1';
     $pane = new stdClass();
     $pane->pid = 'new-2';
+    $pane->panel = 'main_content_col_1';
+    $pane->type = 'custom';
+    $pane->subtype = 'custom';
+    $pane->shown = TRUE;
+    $pane->access = array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'role',
+          'settings' => array(
+            'rids' => array(
+              0 => 3,
+              1 => 5,
+            ),
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+    );
+    $pane->configuration = array(
+      'admin_title' => 'Offer Admin links',
+      'title' => 'Admin links',
+      'body' => '<p><a href="/admin/bosa/webform">Spørgeskemaer</a></p>
+
+<p><a href="/admin/commerce/products/add/butik-produkt">Opret butik produkt</a></p>
+
+<p><a href="/node/add/butik-produkt-visning">Opret butik produktvisning</a></p>
+',
+      'format' => 'full_html',
+      'substitute' => TRUE,
+    );
+    $pane->cache = array();
+    $pane->style = array(
+      'settings' => NULL,
+    );
+    $pane->css = array();
+    $pane->extras = array();
+    $pane->position = 1;
+    $pane->locks = array();
+    $display->content['new-2'] = $pane;
+    $display->panels['main_content_col_1'][1] = 'new-2';
+    $pane = new stdClass();
+    $pane->pid = 'new-3';
     $pane->panel = 'main_content_col_2';
     $pane->type = 'block';
     $pane->subtype = 'bosa_attendees-bosa_attendees';
@@ -138,8 +181,8 @@ function bosa_feature_default_page_manager_pages() {
     $pane->extras = array();
     $pane->position = 0;
     $pane->locks = array();
-    $display->content['new-2'] = $pane;
-    $display->panels['main_content_col_2'][0] = 'new-2';
+    $display->content['new-3'] = $pane;
+    $display->panels['main_content_col_2'][0] = 'new-3';
   $display->hide_title = PANELS_TITLE_FIXED;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;
@@ -198,7 +241,7 @@ function bosa_feature_default_page_manager_pages() {
   $display->content = array();
   $display->panels = array();
     $pane = new stdClass();
-    $pane->pid = 'new-3';
+    $pane->pid = 'new-4';
     $pane->panel = 'main_content_col_2';
     $pane->type = 'block';
     $pane->subtype = 'bosa_attendees-bosa_attendees';
@@ -216,8 +259,8 @@ function bosa_feature_default_page_manager_pages() {
     $pane->extras = array();
     $pane->position = 0;
     $pane->locks = array();
-    $display->content['new-3'] = $pane;
-    $display->panels['main_content_col_2'][0] = 'new-3';
+    $display->content['new-4'] = $pane;
+    $display->panels['main_content_col_2'][0] = 'new-4';
   $display->hide_title = PANELS_TITLE_FIXED;
   $display->title_pane = '0';
   $handler->conf['display'] = $display;

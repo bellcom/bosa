@@ -40,3 +40,4 @@ features[rules_config][] = rules_bosa_update_order
 features[rules_config][] = rules_gratis
 features[views_view][] = commerce_product_view
 features[views_view][] = custom_orders_list
+features[views_view][] = menu_shopping_cart_block
