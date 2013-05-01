@@ -73,11 +73,6 @@ function bosa_attendees_form($form, &$form_state) {
    ->fieldCondition('field_offer_dato', 'value', 'NOW()', '<'); 
  
   $products = $productsQuery->execute();
- 
-  if ( $_SERVER['REMOTE_ADDR'] == '90.185.206.100' )
-  {
-    echo "Hest!";
-  } 
 
   $offerOptions = array('0' => 'Vælg');
   if( isset($products['commerce_product']))
