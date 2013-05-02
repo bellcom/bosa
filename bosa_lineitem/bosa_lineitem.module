@@ -14,82 +14,66 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     // if second price fields are set
     if (!empty($commerce_product->field_2nd_price_select))
     {
-    if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
-    {
-    $current_currency = commerce_multicurrency_get_user_currency_code();
-    $price = $commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
-    $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
-    $formatted_price = commerce_currency_format($converted_price, $current_currency);
+      if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
+      {
+        $current_currency = commerce_multicurrency_get_user_currency_code();
+        $price = $commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+        $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+        $formatted_price = commerce_currency_format($converted_price, $current_currency);
 
-    $text = '&nbsp';
+        $text = '&nbsp';
 
-    if (!empty($commerce_product->field_venteliste_check)) {
-      if ($commerce_product->field_venteliste_check[LANGUAGE_NONE][0]['value'] == 1) {
-        $text = t('Waitinglist');
+        if (!empty($commerce_product->field_venteliste_check)) {
+          if ($commerce_product->field_venteliste_check[LANGUAGE_NONE][0]['value'] == 1) {
+            $text = t('Waitinglist');
+          }
+        }
+
+        // use the extra data and add a new button
+        unset($form['submit']);
+        unset($form['quantity']);
+        $form['#submit'] = array('bosa_lineitem_submit');
+
+        $form['quantity'] = array(
+          '#type' => 'textfield',
+          '#weight' => 85,
+          '#default_value' => 1,
+          '#datatype' => 'number',
+        );
+
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#weight' => 90,
+          '#value' => t('Add to cart'),
+        );
+        $form['text'] = array(
+          '#type' => 'item',
+          '#weight' => 92,
+          '#markup' => '<div class="date">' . $text . '</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
+        );
+
+        $form['quantity2'] = array(
+          '#type' => 'textfield',
+          '#weight' => 95,
+          '#default_value' => 1,
+            '#datatype' => 'integer',
+        );
+
+        $form['submit2'] = array(
+          '#type' => 'submit',
+          '#weight' => 100,
+          '#value' => t('Add to cart 2'),
+        );
       }
-    }
-
-      // use the extra data and add a new button
-      unset($form['submit']);
-      unset($form['quantity']);
-
-      $form['quantity'] = array(
-        '#type' => 'textfield',
-        '#weight' => 85,
-        '#default_value' => 1,
-        '#datatype' => 'number',
-      );
-
-      $form['submit'] = array(
-        '#type' => 'button',
-        '#weight' => 90,
-        '#value' => t('Add to cart'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_1st_price_to_cart_submit',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-        ),
-      );
-      $form['text'] = array(
-        '#type' => 'item',
-        '#weight' => 92,
-        '#markup' => '<div class="date">' . $text . '</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
-      );
-
-      $form['quantity2'] = array(
-        '#type' => 'textfield',
-        '#weight' => 95,
-        '#default_value' => 1,
-          '#datatype' => 'integer',
-      );
-
-      $form['submit2'] = array(
-        '#type' => 'button',
-        '#weight' => 100,
-        '#value' => t('Add to cart 2'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_2nd_price_to_cart_submit',
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'method' => 'replace',
-        ),
-        '#suffix' => '<div id="refresh"></div>',
-      );
-
-    }
     }
     if ($commerce_product->type == "offer_extras_custom")
     {
       unset($form['submit']);
-      $form['submit'] = array(
-        '#type' => 'button',
+      $form['#submit'] = array('bosa_lineitem_submit');
+      $form['submit_extra'] = array(
+        '#type' => 'submit',
         '#weight' => 120,
         '#value' => t('Add to cart'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_extras_to_cart_submit',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-        ),
       );
     }
     $form['node_id'] = array(
@@ -100,15 +84,25 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     return $form;
   }
 }
- 
-/*
- * Callback function for add to cart form
- * used as wrapper for 'commerce_cart_add_to_cart_form_submit'
+
+/**
+ * Custom submit callback
+ * calls the correct cart submit function for the given product
  */
-function bosa_lineitem_add_1st_price_to_cart_submit(&$form, &$form_state){
-  commerce_cart_add_to_cart_form_submit($form, $form_state); 
-  
-  return '<script type="text/javascript">location.reload()</script>';
+function bosa_lineitem_submit(&$form, &$form_state){
+  switch($form_state['clicked_button']['#parents'][0]){
+    case 'submit':
+      commerce_cart_add_to_cart_form_submit($form, $form_state); 
+      break;
+
+    case 'submit2':
+      bosa_lineitem_add_2nd_price_to_cart_submit($form, $form_state);
+      break;
+   
+    case 'submit_extra':
+      bosa_lineitem_add_extras_to_cart_submit($form, $form_state);
+      break;
+  }
 }
 
 /**
@@ -167,8 +161,6 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
     $line_item,
     0
   );
-  //commerce_cart_add_to_cart_form_submit($form, $form_state); 
-  return '<script type="text/javascript">location.reload()</script>';
 }
 
 /**
@@ -179,6 +171,8 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * @return 
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
+  error_log('add extras to cart');
+
   $path_details = explode('/', $form_state['values']['node_id']);
 
   // if the node doesnt have a url alias
@@ -227,7 +221,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
   switch( count($result) )
   {
     case(0):
-      $return = 'Du har ikke valgt en aktivitet der passer til dette tilkøb<br /><a href="javascript: location.reload()">Tilbage</a>';
+      drupal_set_message(t('You have not chosen an activity that fits this extra product'), 'warning');
       break;
     
     case(1):
@@ -253,17 +247,12 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
         $line_item,
         0
       );
-
-      //commerce_cart_add_to_cart_form_submit($form, $form_state); 
-      $return = '<script type="text/javascript">location.reload()</script>';
       break;
     
     default:
-      $return = 'Du kan ikke købe tilvalgsprodukter hvis du har valgt mere end en dato på samme aktivitet. Hvis du ønsker dette skal du foretage endnu en booking.<br /><a href="javascript: location.reload()">Tilbage</a>';
-      
+      drupal_set_message(t('You cannot purchase extra products if you have chosen more than one date for an activity. If you want this, you must create another booking'), 'warning');
       break;
   }
-  return $return;
 }
 
 /**
