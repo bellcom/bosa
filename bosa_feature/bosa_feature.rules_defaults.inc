@@ -38,14 +38,7 @@ function bosa_feature_default_rules_configuration() {
         { "mail" : {
             "to" : "helle@visitmiddelfart.dk",
             "subject" : "Der er blevet oprettet en ny event",
-            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]\\r\\n\\r\\n",
-            "language" : [ "" ]
-          }
-        },
-        { "mail" : {
-            "to" : "tth@bellcom.dk",
-            "subject" : "offer added",
-            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]\\r\\n",
+            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [node:url]\\r\\n",
             "language" : [ "" ]
           }
         }
@@ -66,14 +59,6 @@ function bosa_feature_default_rules_configuration() {
         }
       ],
       "DO" : [
-        { "mail" : {
-            "to" : "tth@bellcom.dk",
-            "subject" : "product added lw",
-            "message" : "test\\r\\n",
-            "from" : "info@lillebaeltwaters.dk",
-            "language" : [ "" ]
-          }
-        },
         { "mail" : {
             "to" : "helle@visitmiddelfart.dk",
             "subject" : "Der er blevet oprettet et nyt produkt",

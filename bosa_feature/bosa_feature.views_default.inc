@@ -138,27 +138,27 @@ function bosa_feature_views_default_views() {
       'empty_column' => 0,
     ),
   );
-  /* Field: Commerce Product: Product ID */
+  /* Felt: Commerce Product: Produkt-ID */
   $handler->display->display_options['fields']['product_id']['id'] = 'product_id';
   $handler->display->display_options['fields']['product_id']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['product_id']['field'] = 'product_id';
-  /* Field: Commerce Product: SKU */
+  /* Felt: Commerce Product: Varenummer */
   $handler->display->display_options['fields']['sku']['id'] = 'sku';
   $handler->display->display_options['fields']['sku']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['sku']['field'] = 'sku';
   $handler->display->display_options['fields']['sku']['link_to_product'] = 0;
-  /* Field: Commerce Product: Title */
+  /* Felt: Commerce Product: Titel */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['title']['field'] = 'title';
   $handler->display->display_options['fields']['title']['link_to_product'] = 0;
-  /* Field: Commerce Product: Type */
+  /* Felt: Commerce Product: Type */
   $handler->display->display_options['fields']['type']['id'] = 'type';
   $handler->display->display_options['fields']['type']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['type']['field'] = 'type';
   $handler->display->display_options['fields']['type']['link_to_product'] = 0;
   $handler->display->display_options['fields']['type']['use_raw_value'] = 0;
-  /* Field: Commerce Product: Price */
+  /* Felt: Commerce Product: Price */
   $handler->display->display_options['fields']['commerce_price']['id'] = 'commerce_price';
   $handler->display->display_options['fields']['commerce_price']['table'] = 'field_data_commerce_price';
   $handler->display->display_options['fields']['commerce_price']['field'] = 'commerce_price';
@@ -168,12 +168,12 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['fields']['commerce_price']['settings'] = array(
     'calculation' => '0',
   );
-  /* Field: Commerce Product: Status */
+  /* Felt: Commerce Product: Status */
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['status']['field'] = 'status';
   $handler->display->display_options['fields']['status']['not'] = 0;
-  /* Field: Commerce Product: Lager */
+  /* Felt: Commerce Product: Lager */
   $handler->display->display_options['fields']['commerce_stock']['id'] = 'commerce_stock';
   $handler->display->display_options['fields']['commerce_stock']['table'] = 'field_data_commerce_stock';
   $handler->display->display_options['fields']['commerce_stock']['field'] = 'commerce_stock';
@@ -182,31 +182,31 @@ function bosa_feature_views_default_views() {
     'thousand_separator' => ' ',
     'prefix_suffix' => 1,
   );
-  /* Field: Broken/missing handler */
+  /* Felt: Handler mangler eller er i stykker */
   $handler->display->display_options['fields']['field_offer_date']['id'] = 'field_offer_date';
   $handler->display->display_options['fields']['field_offer_date']['table'] = 'field_data_field_offer_date';
   $handler->display->display_options['fields']['field_offer_date']['field'] = 'field_offer_date';
-  /* Field: Commerce Product: Created date */
+  /* Felt: Commerce Product: Oprettelsesdato */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['created']['field'] = 'created';
   $handler->display->display_options['fields']['created']['exclude'] = TRUE;
   $handler->display->display_options['fields']['created']['date_format'] = 'long';
-  /* Field: Commerce Product: Edit link */
+  /* Felt: Commerce Product: Redigér-link */
   $handler->display->display_options['fields']['edit_product']['id'] = 'edit_product';
   $handler->display->display_options['fields']['edit_product']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['edit_product']['field'] = 'edit_product';
   $handler->display->display_options['fields']['edit_product']['label'] = 'Rediger';
-  /* Field: Commerce Product: Delete link */
+  /* Felt: Commerce Product: Slet-link */
   $handler->display->display_options['fields']['delete_product']['id'] = 'delete_product';
   $handler->display->display_options['fields']['delete_product']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['delete_product']['field'] = 'delete_product';
   $handler->display->display_options['fields']['delete_product']['label'] = 'Slet';
-  /* Field: Commerce Product: Link */
+  /* Felt: Commerce Product: Link */
   $handler->display->display_options['fields']['view_product']['id'] = 'view_product';
   $handler->display->display_options['fields']['view_product']['table'] = 'commerce_product';
   $handler->display->display_options['fields']['view_product']['field'] = 'view_product';
-  /* Filter criterion: Commerce Product: Title */
+  /* Filterkriterie: Commerce Product: Titel */
   $handler->display->display_options['filters']['title']['id'] = 'title';
   $handler->display->display_options['filters']['title']['table'] = 'commerce_product';
   $handler->display->display_options['filters']['title']['field'] = 'title';
@@ -216,7 +216,7 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['filters']['title']['expose']['label'] = 'Søg på titel';
   $handler->display->display_options['filters']['title']['expose']['operator'] = 'title_op';
   $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
-  /* Filter criterion: Broken/missing handler */
+  /* Filterkriterie: Handler mangler eller er i stykker */
   $handler->display->display_options['filters']['field_offer_date_value']['id'] = 'field_offer_date_value';
   $handler->display->display_options['filters']['field_offer_date_value']['table'] = 'field_data_field_offer_date';
   $handler->display->display_options['filters']['field_offer_date_value']['field'] = 'field_offer_date_value';
@@ -375,40 +375,40 @@ function bosa_feature_views_default_views() {
   );
   $handler->display->display_options['style_options']['sticky'] = TRUE;
   $handler->display->display_options['style_options']['empty_table'] = TRUE;
-  /* Header: Global: View order form */
+  /* Overskrift: Global: Vis ordreformular */
   $handler->display->display_options['header']['view_order_form']['id'] = 'view_order_form';
   $handler->display->display_options['header']['view_order_form']['table'] = 'views';
   $handler->display->display_options['header']['view_order_form']['field'] = 'view_order_form';
-  /* No results behavior: Commerce Order: Empty text */
+  /* Opførsel ved ingen resultater: Commerce Ordre: Tom tekst */
   $handler->display->display_options['empty']['empty_text']['id'] = 'empty_text';
   $handler->display->display_options['empty']['empty_text']['table'] = 'commerce_order';
   $handler->display->display_options['empty']['empty_text']['field'] = 'empty_text';
   $handler->display->display_options['empty']['empty_text']['add_path'] = 'admin/commerce/orders/add';
-  /* Relationship: Commerce Order: Owner */
+  /* Forbindelse: Commerce Ordre: Ejer */
   $handler->display->display_options['relationships']['uid']['id'] = 'uid';
   $handler->display->display_options['relationships']['uid']['table'] = 'commerce_order';
   $handler->display->display_options['relationships']['uid']['field'] = 'uid';
-  /* Relationship: Commerce Order: Referenced customer profile */
+  /* Forbindelse: Commerce Order: Refereret kundeprofil */
   $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['id'] = 'commerce_customer_billing_profile_id';
   $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['table'] = 'field_data_commerce_customer_billing';
   $handler->display->display_options['relationships']['commerce_customer_billing_profile_id']['field'] = 'commerce_customer_billing_profile_id';
-  /* Field: Commerce Order: Order number */
+  /* Felt: Commerce Ordre: Ordrenummer */
   $handler->display->display_options['fields']['order_number']['id'] = 'order_number';
   $handler->display->display_options['fields']['order_number']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['order_number']['field'] = 'order_number';
   $handler->display->display_options['fields']['order_number']['link_to_order'] = 'admin';
-  /* Field: Commerce Order: Created date */
+  /* Felt: Commerce Ordre: Oprettelsesdato */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['created']['field'] = 'created';
-  $handler->display->display_options['fields']['created']['label'] = 'Created';
+  $handler->display->display_options['fields']['created']['label'] = 'Oprettet';
   $handler->display->display_options['fields']['created']['date_format'] = 'medium';
-  /* Field: Commerce Customer profile: Adresse */
+  /* Felt: Commerce Customer profil: Adresse */
   $handler->display->display_options['fields']['commerce_customer_address']['id'] = 'commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['table'] = 'field_data_commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['field'] = 'commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['relationship'] = 'commerce_customer_billing_profile_id';
-  $handler->display->display_options['fields']['commerce_customer_address']['label'] = 'Name';
+  $handler->display->display_options['fields']['commerce_customer_address']['label'] = 'Navn';
   $handler->display->display_options['fields']['commerce_customer_address']['empty'] = '-';
   $handler->display->display_options['fields']['commerce_customer_address']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['commerce_customer_address']['click_sort_column'] = 'country';
@@ -418,38 +418,38 @@ function bosa_feature_views_default_views() {
       'name-oneline' => 'name-oneline',
     ),
   );
-  /* Field: User: Name */
+  /* Felt: Bruger: Navn */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
-  $handler->display->display_options['fields']['name']['label'] = 'User';
+  $handler->display->display_options['fields']['name']['label'] = 'Bruger';
   $handler->display->display_options['fields']['name']['exclude'] = TRUE;
-  /* Field: Commerce Order: Order total */
+  /* Felt: Commerce Order: Order total */
   $handler->display->display_options['fields']['commerce_order_total']['id'] = 'commerce_order_total';
   $handler->display->display_options['fields']['commerce_order_total']['table'] = 'field_data_commerce_order_total';
   $handler->display->display_options['fields']['commerce_order_total']['field'] = 'commerce_order_total';
-  $handler->display->display_options['fields']['commerce_order_total']['label'] = 'Total';
+  $handler->display->display_options['fields']['commerce_order_total']['label'] = 'I alt';
   $handler->display->display_options['fields']['commerce_order_total']['click_sort_column'] = 'amount';
   $handler->display->display_options['fields']['commerce_order_total']['type'] = 'commerce_price_formatted_amount';
   $handler->display->display_options['fields']['commerce_order_total']['settings'] = array(
     'calculation' => FALSE,
   );
-  /* Field: Commerce Order: Order status */
+  /* Felt: Commerce Ordre: Ordrestatus */
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['status']['field'] = 'status';
-  /* Field: Commerce Order: Order Balance */
+  /* Felt: Commerce Ordre: Ordrebalance */
   $handler->display->display_options['fields']['balance']['id'] = 'balance';
   $handler->display->display_options['fields']['balance']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['balance']['field'] = 'balance';
   $handler->display->display_options['fields']['balance']['label'] = 'Balance';
-  /* Field: Commerce Order: Operations links */
+  /* Felt: Commerce Ordre: Redigeringslinks */
   $handler->display->display_options['fields']['operations']['id'] = 'operations';
   $handler->display->display_options['fields']['operations']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['operations']['field'] = 'operations';
-  $handler->display->display_options['fields']['operations']['label'] = 'Operations';
-  /* Field: Commerce Customer profile: Adresse */
+  $handler->display->display_options['fields']['operations']['label'] = 'Handlinger';
+  /* Felt: Commerce Customer profil: Adresse */
   $handler->display->display_options['fields']['commerce_customer_address_1']['id'] = 'commerce_customer_address_1';
   $handler->display->display_options['fields']['commerce_customer_address_1']['table'] = 'field_data_commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address_1']['field'] = 'commerce_customer_address';
@@ -463,7 +463,7 @@ function bosa_feature_views_default_views() {
       'address' => 'address',
     ),
   );
-  /* Field: Commerce Order: Line items */
+  /* Felt: Commerce Order: Line items */
   $handler->display->display_options['fields']['commerce_line_items']['id'] = 'commerce_line_items';
   $handler->display->display_options['fields']['commerce_line_items']['table'] = 'field_data_commerce_line_items';
   $handler->display->display_options['fields']['commerce_line_items']['field'] = 'commerce_line_items';
@@ -472,12 +472,12 @@ function bosa_feature_views_default_views() {
     'view' => 'commerce_line_item_table|default',
   );
   $handler->display->display_options['fields']['commerce_line_items']['delta_offset'] = '0';
-  /* Field: Commerce Order: Link */
+  /* Felt: Commerce Ordre: Link */
   $handler->display->display_options['fields']['view_order']['id'] = 'view_order';
   $handler->display->display_options['fields']['view_order']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['view_order']['field'] = 'view_order';
   $handler->display->display_options['fields']['view_order']['label'] = 'Ordre';
-  /* Contextual filter: Commerce Order: Order number */
+  /* Kontekstuelt filter: Commerce Ordre: Ordrenummer */
   $handler->display->display_options['arguments']['order_number']['id'] = 'order_number';
   $handler->display->display_options['arguments']['order_number']['table'] = 'commerce_order';
   $handler->display->display_options['arguments']['order_number']['field'] = 'order_number';
@@ -487,7 +487,7 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['arguments']['order_number']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['order_number']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['order_number']['limit'] = '0';
-  /* Filter criterion: Commerce Order: Order state */
+  /* Filterkriterie: Commerce Ordre: Ordrestatus */
   $handler->display->display_options['filters']['state']['id'] = 'state';
   $handler->display->display_options['filters']['state']['table'] = 'commerce_order';
   $handler->display->display_options['filters']['state']['field'] = 'state';
@@ -509,7 +509,7 @@ function bosa_feature_views_default_views() {
   $handler = $view->new_display('page', 'Admin page', 'admin_page');
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Commerce Order: Order number */
+  /* Felt: Commerce Ordre: Ordrenummer */
   $handler->display->display_options['fields']['order_number_1']['id'] = 'order_number_1';
   $handler->display->display_options['fields']['order_number_1']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['order_number_1']['field'] = 'order_number';
@@ -518,23 +518,23 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['fields']['order_number_1']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['order_number_1']['alter']['strip_tags'] = TRUE;
   $handler->display->display_options['fields']['order_number_1']['element_label_colon'] = FALSE;
-  /* Field: Commerce Order: Order number */
+  /* Felt: Commerce Ordre: Ordrenummer */
   $handler->display->display_options['fields']['order_number']['id'] = 'order_number';
   $handler->display->display_options['fields']['order_number']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['order_number']['field'] = 'order_number';
   $handler->display->display_options['fields']['order_number']['link_to_order'] = 'admin';
-  /* Field: Commerce Order: Created date */
+  /* Felt: Commerce Ordre: Oprettelsesdato */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['created']['field'] = 'created';
-  $handler->display->display_options['fields']['created']['label'] = 'Created';
+  $handler->display->display_options['fields']['created']['label'] = 'Oprettet';
   $handler->display->display_options['fields']['created']['date_format'] = 'medium';
-  /* Field: Commerce Customer profile: Adresse */
+  /* Felt: Commerce Customer profil: Adresse */
   $handler->display->display_options['fields']['commerce_customer_address']['id'] = 'commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['table'] = 'field_data_commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['field'] = 'commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address']['relationship'] = 'commerce_customer_billing_profile_id';
-  $handler->display->display_options['fields']['commerce_customer_address']['label'] = 'Name';
+  $handler->display->display_options['fields']['commerce_customer_address']['label'] = 'Navn';
   $handler->display->display_options['fields']['commerce_customer_address']['empty'] = '-';
   $handler->display->display_options['fields']['commerce_customer_address']['hide_alter_empty'] = FALSE;
   $handler->display->display_options['fields']['commerce_customer_address']['click_sort_column'] = 'country';
@@ -544,38 +544,38 @@ function bosa_feature_views_default_views() {
       'name-oneline' => 'name-oneline',
     ),
   );
-  /* Field: User: Name */
+  /* Felt: Bruger: Navn */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'users';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['relationship'] = 'uid';
-  $handler->display->display_options['fields']['name']['label'] = 'User';
+  $handler->display->display_options['fields']['name']['label'] = 'Bruger';
   $handler->display->display_options['fields']['name']['exclude'] = TRUE;
-  /* Field: Commerce Order: Order total */
+  /* Felt: Commerce Order: Order total */
   $handler->display->display_options['fields']['commerce_order_total']['id'] = 'commerce_order_total';
   $handler->display->display_options['fields']['commerce_order_total']['table'] = 'field_data_commerce_order_total';
   $handler->display->display_options['fields']['commerce_order_total']['field'] = 'commerce_order_total';
-  $handler->display->display_options['fields']['commerce_order_total']['label'] = 'Total';
+  $handler->display->display_options['fields']['commerce_order_total']['label'] = 'I alt';
   $handler->display->display_options['fields']['commerce_order_total']['click_sort_column'] = 'amount';
   $handler->display->display_options['fields']['commerce_order_total']['type'] = 'commerce_price_formatted_amount';
   $handler->display->display_options['fields']['commerce_order_total']['settings'] = array(
     'calculation' => FALSE,
   );
-  /* Field: Commerce Order: Order status */
+  /* Felt: Commerce Ordre: Ordrestatus */
   $handler->display->display_options['fields']['status']['id'] = 'status';
   $handler->display->display_options['fields']['status']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['status']['field'] = 'status';
-  /* Field: Commerce Order: Order Balance */
+  /* Felt: Commerce Ordre: Ordrebalance */
   $handler->display->display_options['fields']['balance']['id'] = 'balance';
   $handler->display->display_options['fields']['balance']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['balance']['field'] = 'balance';
   $handler->display->display_options['fields']['balance']['label'] = 'Balance';
-  /* Field: Commerce Order: Operations links */
+  /* Felt: Commerce Ordre: Redigeringslinks */
   $handler->display->display_options['fields']['operations']['id'] = 'operations';
   $handler->display->display_options['fields']['operations']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['operations']['field'] = 'operations';
-  $handler->display->display_options['fields']['operations']['label'] = 'Operations';
-  /* Field: Commerce Customer profile: Adresse */
+  $handler->display->display_options['fields']['operations']['label'] = 'Handlinger';
+  /* Felt: Commerce Customer profil: Adresse */
   $handler->display->display_options['fields']['commerce_customer_address_1']['id'] = 'commerce_customer_address_1';
   $handler->display->display_options['fields']['commerce_customer_address_1']['table'] = 'field_data_commerce_customer_address';
   $handler->display->display_options['fields']['commerce_customer_address_1']['field'] = 'commerce_customer_address';
@@ -589,7 +589,7 @@ function bosa_feature_views_default_views() {
       'address' => 'address',
     ),
   );
-  /* Field: Commerce Order: Line items */
+  /* Felt: Commerce Order: Line items */
   $handler->display->display_options['fields']['commerce_line_items']['id'] = 'commerce_line_items';
   $handler->display->display_options['fields']['commerce_line_items']['table'] = 'field_data_commerce_line_items';
   $handler->display->display_options['fields']['commerce_line_items']['field'] = 'commerce_line_items';
@@ -598,14 +598,14 @@ function bosa_feature_views_default_views() {
     'view' => 'commerce_line_item_table|default',
   );
   $handler->display->display_options['fields']['commerce_line_items']['delta_offset'] = '0';
-  /* Field: Commerce Order: Link */
+  /* Felt: Commerce Ordre: Link */
   $handler->display->display_options['fields']['view_order']['id'] = 'view_order';
   $handler->display->display_options['fields']['view_order']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['view_order']['field'] = 'view_order';
   $handler->display->display_options['fields']['view_order']['label'] = 'Ordre';
   $handler->display->display_options['fields']['view_order']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['view_order']['alter']['text'] = '[view_order] ';
-  /* Field: Commerce Order: Order number */
+  /* Felt: Commerce Ordre: Ordrenummer */
   $handler->display->display_options['fields']['order_number_2']['id'] = 'order_number_2';
   $handler->display->display_options['fields']['order_number_2']['table'] = 'commerce_order';
   $handler->display->display_options['fields']['order_number_2']['field'] = 'order_number';
@@ -629,10 +629,10 @@ function bosa_feature_views_default_views() {
   /* Display: Shopping carts */
   $handler = $view->new_display('page', 'Shopping carts', 'shopping_carts');
   $handler->display->display_options['defaults']['title'] = FALSE;
-  $handler->display->display_options['title'] = 'Shopping carts';
+  $handler->display->display_options['title'] = 'Indkøbskurve';
   $handler->display->display_options['defaults']['hide_admin_links'] = FALSE;
   $handler->display->display_options['defaults']['empty'] = FALSE;
-  /* No results behavior: Global: Text area */
+  /* Opførsel ved ingen resultater: Global: Tekstområde */
   $handler->display->display_options['empty']['text']['id'] = 'text';
   $handler->display->display_options['empty']['text']['table'] = 'views';
   $handler->display->display_options['empty']['text']['field'] = 'area';
@@ -641,7 +641,7 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['empty']['text']['format'] = 'plain_text';
   $handler->display->display_options['defaults']['filter_groups'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Commerce Order: Order state */
+  /* Filterkriterie: Commerce Ordre: Ordrestatus */
   $handler->display->display_options['filters']['state']['id'] = 'state';
   $handler->display->display_options['filters']['state']['table'] = 'commerce_order';
   $handler->display->display_options['filters']['state']['field'] = 'state';
@@ -649,7 +649,7 @@ function bosa_feature_views_default_views() {
     'cart' => 'cart',
     'checkout' => 'checkout',
   );
-  $handler->display->display_options['filters']['state']['expose']['label'] = 'Order state';
+  $handler->display->display_options['filters']['state']['expose']['label'] = 'Ordrestatus';
   $handler->display->display_options['filters']['state']['expose']['use_operator'] = TRUE;
   $handler->display->display_options['filters']['state']['expose']['operator'] = 'state_op';
   $handler->display->display_options['filters']['state']['expose']['identifier'] = 'state';
@@ -725,13 +725,13 @@ function bosa_feature_views_default_views() {
       'separator' => '',
     ),
   );
-  /* Footer: Global: Text area */
+  /* Sidefod: Global: Tekstområde */
   $handler->display->display_options['footer']['area']['id'] = 'area';
   $handler->display->display_options['footer']['area']['table'] = 'views';
   $handler->display->display_options['footer']['area']['field'] = 'area';
   $handler->display->display_options['footer']['area']['content'] = '<a href="/cart">Til indkøbskurven</a>';
   $handler->display->display_options['footer']['area']['format'] = 'filtered_html';
-  /* Footer: Commerce Line Item: Line item summary */
+  /* Sidefod: Commerce Line Item: Varelinjeresumé */
   $handler->display->display_options['footer']['line_item_summary']['id'] = 'line_item_summary';
   $handler->display->display_options['footer']['line_item_summary']['table'] = 'commerce_line_item';
   $handler->display->display_options['footer']['line_item_summary']['field'] = 'line_item_summary';
@@ -740,12 +740,12 @@ function bosa_feature_views_default_views() {
     'quantity' => 'quantity',
     'total' => 'total',
   );
-  /* Relationship: Commerce Order: Referenced line item */
+  /* Forbindelse: Commerce Order: Refererede varelinje */
   $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['id'] = 'commerce_line_items_line_item_id';
   $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['table'] = 'field_data_commerce_line_items';
   $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['field'] = 'commerce_line_items_line_item_id';
   $handler->display->display_options['relationships']['commerce_line_items_line_item_id']['required'] = TRUE;
-  /* Field: SUM(Commerce Line Item: Quantity) */
+  /* Felt: SUM(Commerce Line Item: Mængde) */
   $handler->display->display_options['fields']['quantity']['id'] = 'quantity';
   $handler->display->display_options['fields']['quantity']['table'] = 'commerce_line_item';
   $handler->display->display_options['fields']['quantity']['field'] = 'quantity';
@@ -756,21 +756,22 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['fields']['quantity']['alter']['text'] = '<span style="display: none;"></span>';
   $handler->display->display_options['fields']['quantity']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['quantity']['precision'] = '0';
-  /* Sort criterion: Commerce Line Item: Line item ID */
+  /* Sorteringskriterie: Commerce Line Item: Varelinje ID */
   $handler->display->display_options['sorts']['line_item_id']['id'] = 'line_item_id';
   $handler->display->display_options['sorts']['line_item_id']['table'] = 'commerce_line_item';
   $handler->display->display_options['sorts']['line_item_id']['field'] = 'line_item_id';
   $handler->display->display_options['sorts']['line_item_id']['relationship'] = 'commerce_line_items_line_item_id';
-  /* Contextual filter: Commerce Order: Order ID */
+  /* Kontekstuelt filter: Commerce Ordre: Ordre ID */
   $handler->display->display_options['arguments']['order_id']['id'] = 'order_id';
   $handler->display->display_options['arguments']['order_id']['table'] = 'commerce_order';
   $handler->display->display_options['arguments']['order_id']['field'] = 'order_id';
   $handler->display->display_options['arguments']['order_id']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['order_id']['exception']['title'] = 'Alle';
   $handler->display->display_options['arguments']['order_id']['default_argument_type'] = 'commerce_cart_current_cart_order_id';
   $handler->display->display_options['arguments']['order_id']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['order_id']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['order_id']['summary_options']['items_per_page'] = '25';
-  /* Filter criterion: Commerce Line Item: Line item is of a product line item type */
+  /* Filterkriterie: Commerce Line Item: Varelinjen er af en produktvarelinjetype */
   $handler->display->display_options['filters']['product_line_item_type']['id'] = 'product_line_item_type';
   $handler->display->display_options['filters']['product_line_item_type']['table'] = 'commerce_line_item';
   $handler->display->display_options['filters']['product_line_item_type']['field'] = 'product_line_item_type';
