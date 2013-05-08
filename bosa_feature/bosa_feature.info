@@ -32,6 +32,7 @@ features[image][] = offer_list
 features[image][] = offer_view_first
 features[image][] = offer_view_second
 features[image][] = offer_view_third
+features[image][] = popular_offers
 features[page_manager_pages][] = offer_publisher
 features[rules_config][] = rules_bosa_calculate_price
 features[rules_config][] = rules_bosa_offer_added

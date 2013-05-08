@@ -68,10 +68,11 @@ function bosa_block_info() {
  */
 
 function bosa_block_view($delta = '') {
-  $content = bosa_popular_offers();
+  $block = array();
 
   switch ($delta) {
     case 'bosa':
+      $content = bosa_popular_offers();
       $block['subject'] = t('bosa - popular offers');
       $block['content'] = $content;
       break;
@@ -108,7 +109,7 @@ function bosa_popular_offers_cron() {
    AND
    d.entity_id = p.product_id
    AND
-   d.field_offer_dato_value < NOW() ");
+   d.field_offer_dato_value > NOW() ");
 
   // Fetch
   $lineItems = $lineItemsStmt->fetchAll();
@@ -117,6 +118,7 @@ function bosa_popular_offers_cron() {
   $lineItemArray = array();
   foreach ($lineItems as $lineItem) {
     $v = FALSE;
+
     foreach ($lineItemArray as $key => $val) {
       if ($key == $lineItem->title) {
         $v = TRUE;
@@ -153,9 +155,11 @@ function bosa_popular_offers_cron() {
     $nodeImage = $nodeImageStmt->fetch();
     $url = url(drupal_get_path_alias('node/' . $nodeId->nid));
 
-    $content .= "<div class=\"row\">";
-    $content .= "<a href=" . $url . "><img class=\"popular\" src=\"" . image_style_url('popular_offers', $nodeImage->uri) . "\"/>" . $key . "</a>";
-    $content .= "</div>";
+    if($url) {
+      $content .= "<div class=\"row\">";
+      $content .= "<a href=" . $url . "><img class=\"popular\" src=\"" . image_style_url('popular_offers', $nodeImage->uri) . "\"/>" . $key . "</a>";
+      $content .= "</div>";
+    }
   }
   $content .= "</div>";
 
@@ -173,6 +177,7 @@ function bosa_popular_offers() {
   $content = cache_get('bosa_popular_offers');
   if (!isset($content->data)) {
     bosa_popular_offers_cron();
+    $content = cache_get('bosa_popular_offers');
   }
   return $content->data;
 }
