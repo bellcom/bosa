@@ -52,7 +52,7 @@ function bosa_feature_default_page_manager_pages() {
     'no_blocks' => 0,
     'pipeline' => 'standard',
     'body_classes_to_remove' => '',
-    'body_classes_to_add' => '',
+    'body_classes_to_add' => 'offer-publisher',
     'css_id' => '',
     'css' => '',
     'contexts' => array(),
