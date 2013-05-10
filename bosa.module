@@ -273,6 +273,10 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
     }
   }
 
+  // Added to fix exposed filters redirect to view page
+  if($form_id == 'views_exposed_form'){
+    $form['#action'] = '';
+  }
   // Checkout billing/accont information titles did not please, so here we go.
   if($form_id == 'commerce_checkout_form_review') {
     $form['checkout_review']['review']['#data']['account']['title'] = t('Your information');
