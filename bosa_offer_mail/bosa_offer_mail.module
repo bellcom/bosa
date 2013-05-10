@@ -42,7 +42,7 @@ function bosa_offer_mail_pdf($order_id, $arg){
 
   if(is_object($order)){
 
-    if($key == $arg || (in_array('administrator', $user->roles) || in_array('offer_admin', $user->roles ) ))
+    if($key == $arg || (in_array('administrator', $user->roles) || in_array('Offer admin', $user->roles ) ))
     {
       return _bosa_offer_mail_create_pdf($order);
     }
