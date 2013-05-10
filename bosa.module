@@ -73,7 +73,7 @@ function bosa_block_view($delta = '') {
   switch ($delta) {
     case 'bosa':
       $content = bosa_popular_offers();
-      $block['subject'] = t('bosa - popular offers');
+      $block['subject'] = t('Best-selling events');
       $block['content'] = $content;
       break;
   }
@@ -140,8 +140,9 @@ function bosa_popular_offers_cron() {
   $lineItemArray = array_slice($lineItemArray, 0, 6);
 
   // build html for use in block
-  $content = "<div class=\"popular-header\">Mest solgte events</div>";
-  $content .= "<div class=\"popular-offers\">";
+  //$content = "<div class=\"popular-header\">" . t('Best-selling events') .  "</div>";
+  
+  $content = "<div class=\"popular-offers\">";
   foreach ($lineItemArray as $key => $val) {
     $nodeIdStmt = db_query("SELECT nid FROM {node} WHERE title = :title", array(':title' => $key,));
     $nodeId = $nodeIdStmt->fetch();
