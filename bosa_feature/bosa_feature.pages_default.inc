@@ -148,6 +148,14 @@ function bosa_feature_default_page_manager_pages() {
 <p><a href="/admin/commerce/products/add/butik-produkt">Opret butik produkt</a></p>
 
 <p><a href="/node/add/butik-produkt-visning">Opret butik produktvisning</a></p>
+
+<h2>SEO</h2>
+<p><a href="/admin/config/search/metatags">Metatags</a></p>
+<p><a href="/admin/config/search/xmlsitemap">XML sitemap</a></p>
+<p><a href="/admin/config/system/googleanalytics">Google analytics</a></p>
+<p><a href="/admin/config/system/globalredirect">Global redirect</a></p>
+
+
 ',
       'format' => 'full_html',
       'substitute' => TRUE,
