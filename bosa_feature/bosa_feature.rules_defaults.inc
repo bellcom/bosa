@@ -38,7 +38,14 @@ function bosa_feature_default_rules_configuration() {
         { "mail" : {
             "to" : "helle@visitmiddelfart.dk",
             "subject" : "Der er blevet oprettet en ny event",
-            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [node:url]\\r\\n",
+            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]\\r\\n\\r\\n",
+            "language" : [ "" ]
+          }
+        },
+        { "mail" : {
+            "to" : "tth@bellcom.dk",
+            "subject" : "offer added",
+            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]\\r\\n",
             "language" : [ "" ]
           }
         }
@@ -60,6 +67,14 @@ function bosa_feature_default_rules_configuration() {
       ],
       "DO" : [
         { "mail" : {
+            "to" : "tth@bellcom.dk",
+            "subject" : "product added lw",
+            "message" : "test\\r\\n",
+            "from" : "info@lillebaeltwaters.dk",
+            "language" : [ "" ]
+          }
+        },
+        { "mail" : {
             "to" : "helle@visitmiddelfart.dk",
             "subject" : "Der er blevet oprettet et nyt produkt",
             "message" : "Hej,\\r\\n[commerce-product:creator] har oprettet (eller \\u00e6ndret) et produkt: [commerce-product:title]. Du kan se det her: [commerce-product:edit-url]\\r\\n\\r\\n",
@@ -76,6 +91,36 @@ function bosa_feature_default_rules_configuration() {
       "ON" : [ "commerce_order_update" ],
       "DO" : [
         { "php_eval" : { "code" : "if ($commerce_order-\\u003Estatus == \\u0022cart\\u0022) {\\r\\n  unset($_SESSION[\\u0027bosa\\u0027][$commerce_order-\\u003Eorder_id]);\\r\\n}\\r\\nif ($commerce_order-\\u003Estatus !== \\u0022cart\\u0022) {\\r\\nbosa_stock_adjust_save($commerce_order);\\r\\n}" } }
+      ]
+    }
+  }');
+  $items['rules_cancel_products_with_low_attendance'] = entity_import('rules_config', '{ "rules_cancel_products_with_low_attendance" : {
+      "LABEL" : "Cancel products with low attendance",
+      "PLUGIN" : "reaction rule",
+      "REQUIRES" : [ "bosa_reservation", "rules", "inmobile_sms", "commerce_order" ],
+      "ON" : [ "bosa_reservation_product_close_to_deadline" ],
+      "DO" : [
+        { "bosa_reservation_action_get_affected_orders" : {
+            "USING" : { "commerce_product" : [ "commerce_product" ] },
+            "PROVIDE" : { "commerce_orders" : { "commerce_orders" : "Affected Orders" } }
+          }
+        },
+        { "LOOP" : {
+            "USING" : { "list" : [ "commerce-orders" ] },
+            "ITEM" : { "current_order" : "Aktuelt element" },
+            "DO" : [
+              { "mail" : {
+                  "to" : "[current-order:mail]",
+                  "subject" : "Hej [current-order:mail],\\r\\n\\r\\nDin tur, [commerce-product:title], er desv\\u00e6rre blevet aflyst pga. manglende deltagelse.\\r\\n\\r\\nIngen penge er blevet trukket fra dit kort, og vi h\\u00e5ber selvf\\u00f8lgeligt du stadigt fremover vil bruge os til at bestille dine ture fra.\\r\\n\\r\\nVenligst\\r\\n Lilleb\\u00e6lt Waters\\r\\n\\r\\n",
+                  "message" : "[commerce-product:field-cancel-mail-body]",
+                  "language" : [ "" ]
+                }
+              },
+              { "inmobile_sms_send_sms" : { "commerce_order" : [ "current-order" ] } },
+              { "commerce_order_update_status" : { "commerce_order" : [ "current-order" ], "order_status" : "canceled" } }
+            ]
+          }
+        }
       ]
     }
   }');
