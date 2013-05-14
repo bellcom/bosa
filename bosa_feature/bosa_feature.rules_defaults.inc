@@ -116,7 +116,11 @@ function bosa_feature_default_rules_configuration() {
                   "language" : [ "" ]
                 }
               },
-              { "inmobile_sms_send_sms" : { "commerce_order" : [ "current-order" ] } },
+              { "inmobile_sms_send_sms" : {
+                  "commerce_order" : [ "current-order" ],
+                  "commerce_product" : [ "commerce-product" ]
+                }
+              },
               { "commerce_order_update_status" : { "commerce_order" : [ "current-order" ], "order_status" : "canceled" } }
             ]
           }
