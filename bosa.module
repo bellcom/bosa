@@ -14,7 +14,6 @@
 function bosa_cron() {
   // For some reason the cache_form, grows to enourmous sizes,
   // we clean up a little earlier that Drupal normally does
-
   $expiretime = time() - '3600';
 
   $result = db_delete('cache_form')
@@ -25,11 +24,11 @@ function bosa_cron() {
   // Automated abandoned carts cleanup
   //
 
-  // We want to fetch the carts older than 24hours
-  $expiredOrder = time() - '86400';
+  // We want to fetch the carts older than 12hours
+  $expiredOrder = time() - '43200';
 
   // Prepare statement to get order_ids
-  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status != :status AND changed < :changed", array(
+  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status = :status AND changed < :changed", array(
     ':status' => 'cart',
     ':changed' => $expiredOrder,
       ));
@@ -44,7 +43,7 @@ function bosa_cron() {
   }
 
   // Use commerce_order_delete_multiple function to cleanly delete the orders
-//  commerce_order_delete_multiple($oldOrderIds);
+  commerce_order_delete_multiple($oldOrderIds);
 
   // Run function that prepares most popular offers
   bosa_popular_offers_cron();
@@ -60,6 +59,9 @@ function bosa_block_info() {
     'info' => t('Popular offers'),
   );
 
+  $blocks['menu_shopping_cart'] = array(
+    'info' => t('Menu shopping cart'),
+  );
   return $blocks;
 }
 
@@ -75,6 +77,14 @@ function bosa_block_view($delta = '') {
       $content = bosa_popular_offers();
       $block['subject'] = t('Best-selling events');
       $block['content'] = $content;
+      break;
+    case 'menu_shopping_cart':
+      global $user;
+      $commerce_cart_order = commerce_cart_order_load($user->uid);
+      $block['subject'] = t('Shopping cart');
+      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1', $commerce_cart_order->order_id);
+
+
       break;
   }
   return $block;
@@ -104,6 +114,10 @@ function bosa_popular_offers_cron() {
    n.nid = r.entity_id
    AND
    p.type = 'offer'
+   AND
+   n.status = '1'
+   AND
+   l.order_id != '0'
    AND
    p.sku = l.line_item_label
    AND
