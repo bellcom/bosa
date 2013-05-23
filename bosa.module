@@ -283,7 +283,6 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
     global $user;
     if(!in_array('Offer admin', $user->roles)){
       $form['options']['status']['#disabled'] = TRUE;
-      $form['options']['status']['#default_value'] = 0;
     }
   }
 
