@@ -61,6 +61,7 @@ function bosa_block_info() {
 
   $blocks['menu_shopping_cart'] = array(
     'info' => t('Menu shopping cart'),
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -79,12 +80,8 @@ function bosa_block_view($delta = '') {
       $block['content'] = $content;
       break;
     case 'menu_shopping_cart':
-      global $user;
-      $commerce_cart_order = commerce_cart_order_load($user->uid);
       $block['subject'] = t('Shopping cart');
-      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1', $commerce_cart_order->order_id);
-
-
+      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1');
       break;
   }
   return $block;
