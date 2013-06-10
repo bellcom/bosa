@@ -110,7 +110,7 @@ function bosa_feature_default_rules_configuration() {
             "DO" : [
               { "mail" : {
                   "to" : "[current-order:mail]",
-                  "subject" : "Hej [current-order:mail],\\r\\n\\r\\nDin tur, [commerce-product:title], er desv\\u00e6rre blevet aflyst pga. manglende deltagelse.\\r\\n\\r\\nIngen penge er blevet trukket fra dit kort, og vi h\\u00e5ber selvf\\u00f8lgeligt du stadigt fremover vil bruge os til at bestille dine ture fra.\\r\\n\\r\\nVenligst\\r\\n Lilleb\\u00e6lt Waters\\r\\n\\r\\n",
+                  "subject" : "Aflysning af aktivitet",
                   "message" : "[commerce-product:field-cancel-mail-body]",
                   "language" : [ "" ]
                 }

@@ -88,7 +88,6 @@ function _bosa_offer_mail_create_pdf($order){
     
     if(!empty($line_item_entity->field_line_item_ref))
     {
-      error_log(__FILE__.':'.__LINE__. print_r($line_item_entity->field_line_item_comment, 1)); // tth@bellcom.dk debugging
       $product_reference[$line_item_entity->field_line_item_ref[LANGUAGE_NONE][0]['value']][] = array(
         'title' => $line_item_entity->line_item_label,
         'quantity' => $line_item_entity->quantity,
