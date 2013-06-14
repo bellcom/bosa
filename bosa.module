@@ -298,3 +298,17 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
 
 }
 
+
+/**
+ * Access callback, used on sales page
+ * Do not allow users to see other users
+ * sales.
+ */
+function bosa_sales_access($product_sku, $uid){
+  $product = commerce_product_load_by_sku($product_sku);
+
+  if($product->uid == $uid){
+    return true;
+  }
+  return false;
+}
