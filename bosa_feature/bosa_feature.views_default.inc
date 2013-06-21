@@ -765,13 +765,12 @@ function bosa_feature_views_default_views() {
   $handler->display->display_options['arguments']['order_id']['id'] = 'order_id';
   $handler->display->display_options['arguments']['order_id']['table'] = 'commerce_order';
   $handler->display->display_options['arguments']['order_id']['field'] = 'order_id';
-  $handler->display->display_options['arguments']['order_id']['default_action'] = 'summary';
+  $handler->display->display_options['arguments']['order_id']['default_action'] = 'default';
   $handler->display->display_options['arguments']['order_id']['exception']['title'] = 'Alle';
   $handler->display->display_options['arguments']['order_id']['default_argument_type'] = 'commerce_cart_current_cart_order_id';
   $handler->display->display_options['arguments']['order_id']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['order_id']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['order_id']['summary_options']['override'] = TRUE;
-  $handler->display->display_options['arguments']['order_id']['summary_options']['items_per_page'] = '0';
+  $handler->display->display_options['arguments']['order_id']['summary_options']['items_per_page'] = '25';
   /* Filterkriterie: Commerce Line Item: Varelinjen er af en produktvarelinjetype */
   $handler->display->display_options['filters']['product_line_item_type']['id'] = 'product_line_item_type';
   $handler->display->display_options['filters']['product_line_item_type']['table'] = 'commerce_line_item';

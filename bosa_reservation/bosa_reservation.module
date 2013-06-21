@@ -95,7 +95,11 @@ function _bosa_reservation_product_info($pid) {
     $orders = array();
     foreach (commerce_line_item_load_multiple($line_item_ids) as $line_item) {
       if ($line_item->order_id > 0) {
-        $orders[] = $line_item->order_id;
+        // Load order and check for status.
+        $order = commerce_order_load($line_item->order_id);
+        if($order->status == 'pending'){
+          $orders[] = $line_item->order_id;
+        }
       }
     }
     return array(
@@ -112,6 +116,45 @@ function _bosa_reservation_product_info($pid) {
 }
 
 /**
+<<<<<<< HEAD
+=======
+ * Helper function for processing transaction expiry.
+ */
+function _bosa_reservation_check_reservations() {
+  // Locate all currently active products.
+  $query = new EntityFieldQuery();
+  $result = $query->entityCondition('entity_type', 'commerce_product')
+      ->propertyCondition('type', 'offer')
+      ->propertyCondition('status', 1)
+      ->execute();
+  $product_ids = array_keys(array_shift($result));
+  $time = time() - 86400 * 3; // Renew orders 3 day old.
+  foreach ($product_ids as $product_id) {
+    // Get information about the product.
+    $info = _bosa_reservation_product_info($product_id);
+    if (empty($info['orders'])) {
+      continue;
+    }
+    $orders = commerce_order_load_multiple($info['orders']);
+    foreach ($orders as $order) {
+      $transaction = @commerce_payment_fetch_last_payment_transaction($order->order_id);
+
+      error_log(print_r($transaction, 1));
+      if (is_object($transaction) && $transaction->status == 'pending') {
+        if ($transaction->revision_timestamp < $time) {
+          error_log('about to expire');
+          rules_invoke_event('bosa_reservation_order_is_about_to_expire', $order);
+        }
+      }
+     
+      entity_get_controller('commerce_order')->resetCache(array($order->order_id));
+
+    }
+  }
+}
+
+/**
+>>>>>>> a65962fac7b469a62b4eec418db9f2c9a937e0f3
  * Helper function for cancelling reservations for product with insufficient attendance
  *
  * <tth@bellcom.dk>
@@ -135,6 +178,7 @@ function bosa_reservation_cancel_reservations() {
       ->execute();
   
   $product_ids = array_keys(array_shift($result));
+
 
   foreach($product_ids as $product_id) 
   {

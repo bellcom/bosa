@@ -105,7 +105,8 @@ function bosa_feature_default_page_manager_pages() {
     $pane->configuration = array(
       'admin_title' => '',
       'title' => 'Aktør muligheder',
-      'body' => '<h2>&nbsp;</h2><h2>Tilføj:</h2><p><a href="#overlay=admin/commerce/products/add/offer">Produkter</a><br /> <a href="#overlay=admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br /> <a href="/admin/commerce/products/manage_repeater">Gentagne produkter</a><br /> <a href="#overlay=node/add/offer ">Produkt visning</a></p><h2>Se:</h2><p><a href="#overlay=admin/commerce/products">Produkter</a><br /> <a href="#overlay=offerlist">Produkt visninger</a><br /><a href="#overlay=admin/commerce/reports_products">Salgsopgørelse</a></p>',
+      'body' => '<h2>&nbsp;</h2><h2>Tilføj:</h2><p><a href="#overlay=admin/commerce/products/add/offer">Produkter</a><br /> <a href="#overlay=admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br /> <a href="/admin/commerce/products/manage_repeater">Gentagne produkter</a><br /> <a href="#overlay=node/add/offer ">Produkt visning</a></p><h2>Se:</h2><p><a href="#overlay=admin/commerce/products">Produkter</a><br /> <a href="#overlay=offerlist">Produkt visninger</a><br /><a href="#overlay=admin/commerce/reports_products">Salgsopgørelse</a><br />
+<a href="#overlay=bosa/products/permissions">Tilladelser</a></p>',
       'format' => 'full_html',
       'substitute' => TRUE,
     );

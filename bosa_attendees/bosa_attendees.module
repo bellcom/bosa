@@ -68,6 +68,8 @@ function main_page() {
 function bosa_attendees_form($form, &$form_state) {
   global $user;
 
+  global $user;
+
   // Fetch a list of product names for the dropdown
   $productsQuery = new EntityFieldQuery();
   $productsQuery->entityCondition('entity_type', 'commerce_product')
@@ -85,7 +87,11 @@ function bosa_attendees_form($form, &$form_state) {
           continue;
         }
       }
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> a65962fac7b469a62b4eec418db9f2c9a937e0f3
       $entity = entity_load('commerce_product', array($product->product_id));
       $entity = reset($entity);
       

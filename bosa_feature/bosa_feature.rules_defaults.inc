@@ -43,9 +43,9 @@ function bosa_feature_default_rules_configuration() {
           }
         },
         { "mail" : {
-            "to" : "tth@bellcom.dk",
-            "subject" : "offer added",
-            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]\\r\\n",
+            "to" : "dorthe@visitmiddelfart.dk",
+            "subject" : "Der er blevet oprettet en ny event",
+            "message" : "Hej,\\r\\n[node:author] har oprettet (eller \\u00e6ndret) [node:title]. Du kan se den her: [site:url]node\\/[node:nid]",
             "language" : [ "" ]
           }
         }
@@ -67,17 +67,16 @@ function bosa_feature_default_rules_configuration() {
       ],
       "DO" : [
         { "mail" : {
-            "to" : "tth@bellcom.dk",
-            "subject" : "product added lw",
-            "message" : "test\\r\\n",
-            "from" : "info@lillebaeltwaters.dk",
+            "to" : "helle@visitmiddelfart.dk",
+            "subject" : "Der er blevet oprettet et nyt produkt",
+            "message" : "Hej,\\r\\n[commerce-product:creator] har oprettet (eller \\u00e6ndret) et produkt: [commerce-product:title]. Du kan se det her: [commerce-product:edit-url]\\r\\n\\r\\n",
             "language" : [ "" ]
           }
         },
         { "mail" : {
-            "to" : "helle@visitmiddelfart.dk",
+            "to" : "dorthe@visitmiddelfart.dk",
             "subject" : "Der er blevet oprettet et nyt produkt",
-            "message" : "Hej,\\r\\n[commerce-product:creator] har oprettet (eller \\u00e6ndret) et produkt: [commerce-product:title]. Du kan se det her: [commerce-product:edit-url]\\r\\n\\r\\n",
+            "message" : "Hej,\\r\\n[commerce-product:creator] har oprettet (eller \\u00e6ndret) et produkt: [commerce-product:title]. Du kan se det her: [commerce-product:edit-url]",
             "language" : [ "" ]
           }
         }
@@ -111,7 +110,7 @@ function bosa_feature_default_rules_configuration() {
             "DO" : [
               { "mail" : {
                   "to" : "[current-order:mail]",
-                  "subject" : "Hej [current-order:mail],\\r\\n\\r\\nDin tur, [commerce-product:title], er desv\\u00e6rre blevet aflyst pga. manglende deltagelse.\\r\\n\\r\\nIngen penge er blevet trukket fra dit kort, og vi h\\u00e5ber selvf\\u00f8lgeligt du stadigt fremover vil bruge os til at bestille dine ture fra.\\r\\n\\r\\nVenligst\\r\\n Lilleb\\u00e6lt Waters\\r\\n\\r\\n",
+                  "subject" : "Aflysning af aktivitet",
                   "message" : "[commerce-product:field-cancel-mail-body]",
                   "language" : [ "" ]
                 }

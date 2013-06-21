@@ -92,6 +92,7 @@ function bosa_block_info() {
 
   $blocks['menu_shopping_cart'] = array(
     'info' => t('Menu shopping cart'),
+    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
 }
@@ -110,16 +111,8 @@ function bosa_block_view($delta = '') {
       $block['content'] = $content;
       break;
     case 'menu_shopping_cart':
-      global $user;
-      $commerce_cart_order = commerce_cart_order_load($user->uid);
-      $order_id = null;
-      if(is_object($commerce_cart_order)){
-        $order_id = $commerce_cart_order->order_id;
-      }
-
       $block['subject'] = t('Shopping cart');
-      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1', $order_id);
-
+      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1');
       break;
   }
   return $block;
@@ -318,7 +311,6 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
     global $user;
     if(!in_array('Offer admin', $user->roles)){
       $form['options']['status']['#disabled'] = TRUE;
-      $form['options']['status']['#default_value'] = 0;
     }
   }
 
@@ -337,3 +329,17 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
 
 }
 
+
+/**
+ * Access callback, used on sales page
+ * Do not allow users to see other users
+ * sales.
+ */
+function bosa_sales_access($product_sku, $uid){
+  $product = commerce_product_load_by_sku($product_sku);
+
+  if($product->uid == $uid){
+    return true;
+  }
+  return false;
+}
