@@ -7,8 +7,39 @@
  * @author Thomas Thune Hansen <tth@bellcom.dk>
  * @version $0.1
  * @copyright 2012 bellcom open source aps
- * */
-/*
+ */
+
+/**
+ * Implements hook_menu()
+ */
+function bosa_menu() {
+  $items = array();
+
+  $items['admin/bosa'] = array(
+    'title' => 'BOSA',
+    'Description' => 'Administer BOSA',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access bosa administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+    'weight' => -5,
+  );
+  
+  return $items; 
+}
+/**
+ * Implements hook_permission()
+ */
+function bosa_permission() {
+  return array(
+    'access bosa administration pages' => array(
+      'title' => t('Access BOSA administration pages'),
+      'description' => t('Allow user to access BOSA administration pages'),
+    ),
+  );
+}
+
+/**
  * Implements hook_cron
  */
 function bosa_cron() {
@@ -81,9 +112,13 @@ function bosa_block_view($delta = '') {
     case 'menu_shopping_cart':
       global $user;
       $commerce_cart_order = commerce_cart_order_load($user->uid);
-      $block['subject'] = t('Shopping cart');
-      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1', $commerce_cart_order->order_id);
+      $order_id = null;
+      if(is_object($commerce_cart_order)){
+        $order_id = $commerce_cart_order->order_id;
+      }
 
+      $block['subject'] = t('Shopping cart');
+      $block['content'] = views_embed_view('menu_shopping_cart_block', 'block_1', $order_id);
 
       break;
   }

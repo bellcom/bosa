@@ -66,6 +66,7 @@ function main_page() {
 }
 
 function bosa_attendees_form($form, &$form_state) {
+  global $user;
 
   // Fetch a list of product names for the dropdown
   $productsQuery = new EntityFieldQuery();
@@ -79,8 +80,27 @@ function bosa_attendees_form($form, &$form_state) {
   {
     foreach( $products['commerce_product'] as $product)
     {
+      if(function_exists('bosa_products_permissions_check')){
+        if(!bosa_products_permissions_check($product->product_id, $user->uid)){
+          continue;
+        }
+      }
+
       $entity = entity_load('commerce_product', array($product->product_id));
-      $offerOptions = $offerOptions + array( $entity[$product->product_id]->sku => $entity[$product->product_id]->title . ' - ' .$entity[$product->product_id]->field_offer_dato[LANGUAGE_NONE][0]['value']); 
+      $entity = reset($entity);
+      
+      if (is_object($entity)) {
+        
+        $sku = $entity->sku;
+
+        $title = $entity->title;
+
+        $date = !empty($entity->field_offer_dato) ? $entity->field_offer_dato[LANGUAGE_NONE][0]['value'] : '';
+
+        $option = array( $sku  =>  $title . ' - ' . $date); 
+
+        $offerOptions = $offerOptions + $option; 
+      }
     }
   }
 

@@ -8,7 +8,7 @@
  **/
 
 
-/*
+/**
  * Implements hook_menu()
  */
 function bosa_offer_mail_menu() {
@@ -16,7 +16,58 @@ function bosa_offer_mail_menu() {
    'page callback' => 'bosa_offer_mail_pdf',
    'access arguments' => array('access content'), 
   );
+  $items['admin/bosa/mail'] = array(
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bosa_offer_mail_admin'),
+    'title' => 'BOSA Mail settings',
+    'description' => 'Change settings for voucher mail',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer bosa offer mail'), 
+  );
+
   return $items;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function bosa_offer_mail_permission() {
+  return array(
+    'administer bosa offer mail' => array(
+      'title' => t('Administer BOSA offer mail'),
+      'description' => t('Set up mail for order completion'),
+    ),
+  );
+}
+
+/**
+ * Page callback for admin settings
+ */
+function bosa_offer_mail_admin($form, &$form_state){
+  $form['title'] = array(
+    '#type' => 'item',
+    '#title' => 'BOSA Mail settings',
+  );
+
+  $form['bosa_offer_mail_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Subject',
+    '#default_value' => variable_get('bosa_offer_mail_subject'),
+  );
+
+  $form['bosa_offer_mail_body'] = array(
+    '#type' => 'textarea',
+    '#title' => 'Message',
+    '#default_value' => variable_get('bosa_offer_mail_body'),
+  );
+
+  $form['tokens'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array('commerce-order'), // The token types that have specific context. Can be multiple token types like 'term' and/or 'user'
+    '#global_types' => TRUE, // A boolean TRUE or FALSE whether to include 'global' context tokens like [current-user:*] or [site:*]. Defaults to TRUE.
+    '#click_insert' => TRUE, // A boolean whether to include the 'Click this token to insert in into the the focused textfield' JavaScript functionality. Defaults to TRUE.
+    );
+    return system_settings_form($form);
 }
 
 /**
@@ -28,9 +79,8 @@ function bosa_offer_mail_menu() {
  *  int $arg, profile_id and order created time
  * @return 
  *  _bosa_offer_mail_create_pdf callback
- **/
+ */
 function bosa_offer_mail_pdf($order_id, $arg){
-
   global $user;
 
   $order = commerce_order_load($order_id);
@@ -52,23 +102,16 @@ function bosa_offer_mail_pdf($order_id, $arg){
   }
   else {
     return "";
- }
+  }
 }
 
 /**
- * create pdf containing using dompdf
+ * Create markup for voucher
  *
- * @todo
- *  split this up!
- *
- * @access public
- * @param 
- *  object $order, commerce order entity
  * @return
- *  
- **/
-function _bosa_offer_mail_create_pdf($order){
-  require_once libraries_get_path('dompdf') . '/dompdf_config.inc.php';
+ *  markup
+ */
+function _bosa_offer_mail_markup($order){
 
   global $base_url;
 
@@ -88,7 +131,6 @@ function _bosa_offer_mail_create_pdf($order){
     
     if(!empty($line_item_entity->field_line_item_ref))
     {
-      error_log(__FILE__.':'.__LINE__. print_r($line_item_entity->field_line_item_comment, 1)); // tth@bellcom.dk debugging
       $product_reference[$line_item_entity->field_line_item_ref[LANGUAGE_NONE][0]['value']][] = array(
         'title' => $line_item_entity->line_item_label,
         'quantity' => $line_item_entity->quantity,
@@ -161,9 +203,6 @@ We wish you a pleasant stay, and hope to see you again soon. <br /><br />
 
   $view .= '</body></html>';
 
-
-  //$view = file_get_contents('http://lillebaeltwaters.bellcom.dk/offer_mail_view/' . $id_url); 
-
   $view = str_replace($base_url.'/', '', $view);
 
   //error_log(print_r($view, 1));
@@ -171,18 +210,80 @@ We wish you a pleasant stay, and hope to see you again soon. <br /><br />
   //print $view;
 
   //die();
+  
+  return $view;
+}
 
+function _bosa_offer_mail_create_pdf($order, $param = NULL){
+  require_once libraries_get_path('dompdf') . '/dompdf_config.inc.php';
+
+  $view = _bosa_offer_mail_markup($order);
+  
   $dompdf = new DOMPDF();
 
   $dompdf->load_html($view);
   $dompdf->set_paper("a4","portrait");
   $dompdf->render();
 
-  $dompdf->stream('Ordre_'.$order->order_id.'.pdf');
+  if($param == 'file') {
+    return $dompdf->output();
+  }
 
+  $dompdf->stream('Ordre_'.$order->order_id.'.pdf');
 }
 
+function bosa_offer_mail_save_pdf($order_id) {
+  $order = commerce_order_load($order_id);
+  $pdf = _bosa_offer_mail_create_pdf($order, 'file');
 
+  $file = file_save_data($pdf, 'public://Ordre_'.$order_id. '.pdf');
+
+  return drupal_realpath($file->uri);
+}
+
+/**
+ * Implements hook_mail()
+ */
+function bosa_offer_mail_mail($key, &$message, $params) {
+
+  $pdf_path = bosa_offer_mail_save_pdf($params['order_id']);
+
+  $attachment = array(
+    'filecontent' => $pdf_path,
+    'filename' => 'Ordre_' . $params['order_id'] . '.pdf',
+    'filemime' => 'application/pdf',
+  );
+
+  $body = variable_get('bosa_offer_mail_body');
+  $subject = variable_get('bosa_offer_mail_subject');
+
+  $order = commerce_order_load($params['order_id']);
+
+  $body = token_replace($body, array('commerce-order' => $order));
+  $subject = token_replace($subject , array('commerce-order' => $order));
+
+  switch($key) {
+    case 'voucher':
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+      $message['subject'] = $subject;
+      $message['body'][] = $body;
+      $message['params']['attachments'][] = $attachment;
+      break;
+  }
+}
+
+/**
+ * Implements hook_commerce_checkout_complete()
+ */
+function bosa_offer_mail_commerce_checkout_complete($order) {
+  $params['order_id'] = $order->order_id;
+
+  drupal_mail('bosa_offer_mail', 'voucher', $order->mail, 'da', $params);
+}
+
+/**
+ *
+ */
 function bosa_offer_mail_get_node_ids($line_items) {
   $node_ids = array();
 
@@ -191,7 +292,6 @@ function bosa_offer_mail_get_node_ids($line_items) {
     // load lineitem to get line_item_label
     $line_item_entity = commerce_line_item_load($line_item['line_item_id']);
     
-
     // load product to get id
     $product_entity = commerce_product_load_by_sku($line_item_entity->line_item_label);
 
