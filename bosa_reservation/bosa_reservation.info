@@ -15,5 +15,4 @@ core = 7.x
 version = "7.x-0.1"
 
 dependencies[] = simpletest
-files[] = bosa_reservation.test
 files[] = bosa_reservation.rules.inc

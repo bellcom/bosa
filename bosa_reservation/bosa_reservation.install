@@ -1,0 +1,51 @@
+<?php
+
+function bosa_reservation_install() {
+  drupal_install_shema('bosa_reservation');
+}
+
+function bosa_reservation_uninstall() {
+  drupal_uninstall_schema('bosa_reservation');
+}
+
+function bosa_reservation_schema() {
+  return array('bosa_reservation' => array(
+      'description' => 'Table for bosa reservation refund info',
+      'fields' => array(
+        'refund_id' => array(
+          'description' => 'refund id',
+          'type' => 'serial',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'product_id' => array(
+          'description' => 'Product id of cancelled product',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+
+        'order_id' => array(
+          'description' => 'Order id of affected order',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+
+        'data' => array(
+          'description' => 'A Serialized array of additional product info',
+          'type' => 'blob',
+        ),
+
+        'timestamp' => array(
+          'description' => 'Timestamp for order cancellation',
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+
+      ),
+      'primary key' => array('refund_id'),
+    ),
+  );
+}
