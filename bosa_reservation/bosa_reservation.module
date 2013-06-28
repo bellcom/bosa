@@ -295,8 +295,6 @@ function bosa_reservation_refund_process($cancel_info){
       // Get amount to refund
       $info = _bosa_reservation_refund_get_info($order, $product_id);
 
-      error_log(print_r($info['referenced_line_item_ids'], 1));
-      
       $refund = bosa_reservation_refund_payment($order, $info['amount']);
 
       $info['refund_status'] = 'failure';
@@ -329,6 +327,7 @@ function bosa_reservation_refund_process($cancel_info){
  *  info array
  */
 function bosa_reservation_save_info($product_id, $order_id, $info) {
+  error_log(__FILE__.':'.__LINE__. print_r($info, 1)); // tth@bellcom.dk debugging
   db_insert('bosa_reservation') 
   ->fields(array(
     'product_id' => $product_id,
@@ -391,26 +390,27 @@ function bosa_reservation_refund_payment($order, $amount){
   $txn->refund($txn_amount);
 
   $transaction->amount = -$amount;
-
   $transaction->payload[REQUEST_TIME] = $txn;
 
   if ($txn->success()) {
     // Doin some logging
-    watchdog('bosa_reservation', 'refund completed order: @order', array('@order' => $order), WATCHDOG_NOTICE);
+    watchdog('bosa_reservation', 'refund completed order: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
     
     $transaction->data = 'bosa_reservation_refund';
     $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+    $success = TRUE;
   }
   else {
     // Doin some logging
-    watchdog('bosa_reservation', 'refund failed order_id: @order', array('@order' => $order), WATCHDOG_NOTICE);
+    watchdog('bosa_reservation', 'refund failed order_id: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
     
     $transaction->status = COMMERCE_PAMENT_STATUS_FAILURE;
+    $success = FALSE;
   }
 
   // Save transaction
   commerce_payment_transaction_save($transaction);
-  return $txn->success();
+  return $success;
 }
 
 /**
