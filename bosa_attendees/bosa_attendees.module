@@ -237,7 +237,7 @@ function _bosa_attendees_from_line_item_id($line_item_id)
 
   if(isset($orderEntity->status))
   {
-    if ($orderEntity->status !== 'cart' || $orderEntity->status !== 'cancelled' )
+    if ($orderEntity->status == 'completed')
     {
       $wrapper = entity_metadata_wrapper('commerce_order', $orderEntity);
       $address = $wrapper->commerce_customer_billing->commerce_customer_address->value();
