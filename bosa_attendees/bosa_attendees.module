@@ -72,8 +72,10 @@ function bosa_attendees_form($form, &$form_state) {
   // Fetch a list of product names for the dropdown
   $productsQuery = new EntityFieldQuery();
   $productsQuery->entityCondition('entity_type', 'commerce_product')
-   ->fieldCondition('field_offer_dato', 'value', 'NOW()', '<'); 
- 
+    ->fieldCondition('field_offer_dato', 'value', 'NOW()', '<')
+    ->propertyOrderBy('title', 'ASC');
+  
+
   $products = $productsQuery->execute();
 
   $offerOptions = array('0' => 'Vælg');
@@ -237,7 +239,7 @@ function _bosa_attendees_from_line_item_id($line_item_id)
 
   if(isset($orderEntity->status))
   {
-    if ($orderEntity->status == 'completed')
+    if ($orderEntity->status == 'completed' || $orderEntity->status == 'pending')
     {
       $wrapper = entity_metadata_wrapper('commerce_order', $orderEntity);
       $address = $wrapper->commerce_customer_billing->commerce_customer_address->value();
