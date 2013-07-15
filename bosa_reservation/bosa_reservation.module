@@ -179,6 +179,7 @@ function bosa_reservation_page($nid) {
  */
 function _bosa_reservation_product_info($pid) {
   if ($prod = commerce_product_load($pid)) {
+    $count = 0;
     $min = field_get_items('commerce_product', $prod, 'field_mindste_antal');
     $min = empty($min) ? 0 : array_shift(array_shift($min));
     $stock = field_get_items('commerce_product', $prod, 'commerce_stock');
@@ -195,7 +196,10 @@ function _bosa_reservation_product_info($pid) {
         // Load order and check for status.
         $order = commerce_order_load($line_item->order_id);
         if($order->status == 'completed'){
-          $orders[] = $line_item->order_id;
+          $count += $line_item->quantity;
+          if(!in_array($line_item->order_id, $orders)){
+            $orders[] = $line_item->order_id;
+          }
         }
       }
     }
@@ -203,7 +207,7 @@ function _bosa_reservation_product_info($pid) {
       'id' => (int) $pid,
       'min' => (int) $min,
       'stock' => (int) $stock,
-      'count' => (int) count($orders),
+      'count' => (int) $count,
       'orders' => $orders,
     );
   }
