@@ -1,6 +1,0 @@
-name = BOSA Offer mail
-description = generates a PDF with the purchased offers
-core = 7.x
-version = "7.x-0.1-dev"
-package = BOSA
-dependencies[] = commerce
