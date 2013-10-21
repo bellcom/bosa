@@ -7,21 +7,162 @@
  * @author Thomas Thune Hansen <tth@bellcom.dk>
  * @version $0.1
  * @copyright 2012 bellcom open source aps
- * */
+ */
+
+function bosa_menu() {
+  $items = array();
+
+  $items['admin/bosa'] = array(
+    'title' => 'BOSA',
+    'Description' => 'Administer BOSA',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access bosa administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+    'weight' => -5,
+  );
+
+  // Administration
+  $items['bosa'] = array(
+    'title' => 'BOSA Backoffice',
+    'Description' => '',
+    'page callback' => 'bosa_backoffice_page',
+    'access callback' => 'user_is_logged_in',
+    'weight' => -5,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission()
+ */
+function bosa_permission() {
+  return array(
+    'access bosa administration pages' => array(
+      'title' => t('Access BOSA administration pages'),
+      'description' => t('Allow user to access BOSA administration pages'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_init()
+ */
+function bosa_init(){
+  if(arg(0) == 'bosa'){
+    drupal_add_css(drupal_get_path('module', 'bosa') . '/css/bosa-backoffice.css');
+  }
+}
+
+/**
+ * Page callback for sellers
+ */
+function bosa_backoffice_page(){
+  $oldstuff = '
+    <div class="bosa-backoffice">
+      <div class="bosa-category-container">
+      <h2 class="bosa-category-title">Produkter</h2>
+      <i class="bosa-icon bosa-icon-images"></i>
+        <h3 class="bosa-category-subtitle">Tilføj</h3>
+        <a href="/admin/commerce/products/add/offer">Produkter</a><br>
+        <a href="/admin/commerce/products/add/produkt-uden-lager-dato">Produkt uden lager/dato</a> <br>
+        <a href="/admin/commerce/products/add/produkt-uden-lager">Produkt uden lager</a> <br>
+        <a href="/admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br>
+
+        <h3 class="bosa-category-subtitle">Se</h3>
+        <a href="/admin/commerce/products">Produkter</a><br>
+      </div>
+
+      <div class="bosa-category-container">
+        <h2 class="bosa-category-title">Visninger</h2>
+        <i class="bosa-icon bosa-icon-layout"></i>
+        <h3 class="bosa-category-subtitle">Tilføj</h3>
+        <a href="/node/add/offer ">Produkt visning</a>
+
+        <h3 class="bosa-category-subtitle">Se</h3>
+        <a href="/offerlist">Produkt visninger</a><br>
+     </div>
+
+     <div class="bosa-category-container">
+        <h2 class="bosa-category-title">Eftersalg</h2>
+        <a href="/bosa/voucher/product/all"><i class="bosa-icon bosa-icon-group"></i>Deltagerlister</a>
+        <a href="/admin/commerce/reports_products"><i class="bosa-icon bosa-icon-cash-register"></i>Salgsopgørelse</a>
+     </div>
+
+     <div class="bosa-category-container">
+        <h2 class="bosa-category-title">Administration</h2>
+        <a href="/admin/bosa"><i class="bosa-icon bosa-icon-tools"></i>BOSA Indstillinger</a>
+     </div>
+    </div>
+';
+
+/*
+<div class="hide">
+    <a href="/node/add/offer ">Produkt visning</a></p>
+
+    <a href="/offerlist">Produkt visninger</a><br><a href="/admin/commerce/reports_products">Salgsopgørelse</a></p>
+
+
+
+
+<div class="pane-content">
+	    <h2>&nbsp;</h2>
+<h2>Tilføj:</h2>
+<p><a href="/admin/commerce/products/add/offer">Produkter</a><br><a href="/admin/commerce/products/add/produkt-uden-lager-dato">Produkt uden lager/dato</a> <br><a href="/admin/commerce/products/add/produkt-uden-lager">Produkt uden lager</a> <br><a href="/admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br><a href="/node/add/offer ">Produkt visning</a></p>
+<h2>Se:</h2>
+<p><a href="/admin/commerce/products">Produkter</a><br><a href="/offerlist">Produkt visninger</a><br><a href="/admin/commerce/reports_products">Salgsopgørelse</a></p>
+</div>
+</div>
+    ';
+ */
+  $output = '';
+
+  //ctools_include('plugins');
+  //$bosa = ctools_get_plugins('bosa', 'link');
+
+  //foreach($bosa as $plugin){
+    //$output .= call_user_func($plugin['callback']);
+  //}
+
+  return $oldstuff . $output;
+}
+
+/**
+ * Implements hook_ctools_plugin_type
+ */
+function bosa_ctools_plugin_type() {
+  // Define custom ctools plugin
+  return array(
+    'link' => array(
+      'use hooks' => TRUE,
+    ),
+  );
+}
+
 /*
  * Implements hook_cron
  */
 function bosa_cron() {
+  // For some reason the cache_form, grows to enourmous sizes,
+  // we clean up a little earlier that Drupal normally does
+  $expiretime = time() - '3600';
+
+  $result = db_delete('cache_form')
+	->condition('created', $expiretime, '<')
+	->execute();
+
+
   /*
    * Automated abandoned carts cleanup
    */
 
-  // We want to fetch the carts older than 36hours
-  $expiredOrder = time() - '172800';
+  // We want to fetch the carts older than 24hours
+  $expiredOrder = time() - '86400';
 
   // Prepare statement to get order_ids
-  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status = :status AND changed < :changed", array(
-    ':status' => 'cart',
+  $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status != :status AND changed < :changed", array(
+    ':status' => 'completed',
     ':changed' => $expiredOrder,
       ));
 
@@ -41,10 +182,11 @@ function bosa_cron() {
   bosa_popular_offers_cron();
 }
 
+
+
 /*
  * Implements hook block_info
  */
-
 function bosa_block_info() {
   $blocks['bosa'] = array(
     'info' => t('Popular offers'),
@@ -252,10 +394,19 @@ function bosa_form_alter(&$form, &$form_state, $form_id) {
   {
     global $user;
     if(!in_array('Offer admin', $user->roles)){
-      error_log(__FILE__.':'.__LINE__. print_r($user, 1)); // tth@bellcom.dk debugging
       $form['options']['status']['#disabled'] = TRUE;
       $form['options']['status']['#default_value'] = 0;
     }
   }
 
+  // Checkout billing/accont information titles did not please, so here we go.
+  if($form_id == 'commerce_checkout_form_review') {
+    $form['checkout_review']['review']['#data']['account']['title'] = t('Your information');
+    unset($form['checkout_review']['review']['#data']['customer_profile_billing']['title']);
+  }
+  if($form_id == 'commerce_product_ui_product_form') {
+    $form['commerce_price'][LANGUAGE_NONE][0]['amount']['#title'] = t('Price');
+  }
+
 }
+

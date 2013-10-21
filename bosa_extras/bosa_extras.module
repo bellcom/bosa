@@ -7,12 +7,16 @@
  * @copyright 2012 bellcom open source aps
  **/
 
+/**
+ * implements hook_init()
+ **/
 function bosa_extras_init() {
 
   if(arg(0) == 'checkout')
   {
+    global $language;
     $node = node_load(15);
-    $terms = array('terms' => $node->body[LANGUAGE_NONE][0]['safe_value']);
+    $terms = array('terms' => $node->body[$language->language][0]['safe_value']);
 
     drupal_add_js(array('bosa_extras' => $terms), 'setting');
     drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.Terms.js');
@@ -24,6 +28,12 @@ function bosa_extras_init() {
   drupal_add_js(drupal_get_path('module', 'bosa_extras').'/js/jquery.inCart.js');
 }
 
+/**
+ * implements hook_user_login()
+ */
 function bosa_extras_user_login(&$edit, $account) {
-  drupal_goto('offer-publisher/');
+if (!isset($_POST['form_id']) || $_POST['form_id'] != 'user_pass_reset' || variable_get('login_destination_immediate_redirect', FALSE)) {
+  drupal_goto('bosa/');
 }
+}
+

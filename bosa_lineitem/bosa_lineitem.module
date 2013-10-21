@@ -1,6 +1,6 @@
 <?php
 /*
- * Implements hook_form_FORM_ID_alter
+ * Implements hook_form_alter
  *
  * Unsetting standard add to cart form, when the product is set
  * to be sold with 2 prices.
@@ -12,83 +12,97 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
     $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
     
     // if second price fields are set
-    if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
+    if (!empty($commerce_product->field_2nd_price_select))
     {
-    $price = commerce_currency_format($commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'], "DKK");
-      // use the extra data and add a new button
-      unset($form['submit']);
-      unset($form['quantity']);
+      if ($commerce_product->field_2nd_price_select[LANGUAGE_NONE][0]['value'] == 1)
+      {
+        $current_currency = commerce_multicurrency_get_user_currency_code();
+        $price = $commerce_product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+        $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+        $formatted_price = commerce_currency_format($converted_price, $current_currency);
 
-      $form['quantity'] = array(
-        '#type' => 'textfield',
-        '#weight' => 85,
-        '#default_value' => 1,
-        '#datatype' => 'number',
-      );
+        $text = '&nbsp';
 
-      $form['submit'] = array(
-        '#type' => 'button',
-        '#weight' => 90,
-        '#value' => t('Add to cart'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_1st_price_to_cart_submit',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-        ),
-      );
-      $form['text'] = array(
-        '#type' => 'item',
-        '#weight' => 92,
-        '#markup' => '<div class="date">&nbsp</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$price.'</div>' ,
-      );
+        if (!empty($commerce_product->field_venteliste_check)) {
+          if ($commerce_product->field_venteliste_check[LANGUAGE_NONE][0]['value'] == 1) {
+            $text = t('Waitinglist');
+          }
+        }
+        // use the extra data and add a new button
+        unset($form['submit']);
+        unset($form['#action']);
+        unset($form['quantity']);
+        $form['#submit'] = array('bosa_lineitem_submit');
 
-      $form['quantity2'] = array(
-        '#type' => 'textfield',
-        '#weight' => 95,
-        '#default_value' => 1,
-          '#datatype' => 'integer',
-      );
+        $form['quantity'] = array(
+          '#type' => 'textfield',
+          '#weight' => 85,
+          '#default_value' => 1,
+          '#datatype' => 'number',
+        );
 
-      $form['submit2'] = array(
-        '#type' => 'button',
-        '#weight' => 100,
-        '#value' => t('Add to cart 2'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_2nd_price_to_cart_submit',
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'method' => 'replace',
-        ),
-        '#suffix' => '<div id="refresh"></div>',
-      );
+        $form['submit'] = array(
+          '#type' => 'submit',
+          '#weight' => 90,
+          '#value' => t('Add to cart'),
+        );
+        $form['text'] = array(
+          '#type' => 'item',
+          '#weight' => 92,
+          '#markup' => '<div class="date">' . $text . '</div><div class="ledige_pladser">&nbsp</div><div class="price">'.$formatted_price.'  - '.t('child').'</div>' ,
+        );
 
+        $form['quantity2'] = array(
+          '#type' => 'textfield',
+          '#weight' => 95,
+          '#default_value' => 1,
+            '#datatype' => 'integer',
+        );
+
+        $form['submit2'] = array(
+          '#type' => 'submit',
+          '#weight' => 100,
+          '#value' => t('Add to cart 2'),
+        );
+      }
     }
     if ($commerce_product->type == "offer_extras_custom")
     {
       unset($form['submit']);
-      $form['submit'] = array(
-        '#type' => 'button',
+      $form['#submit'] = array('bosa_lineitem_submit');
+      $form['submit_extra'] = array(
+        '#type' => 'submit',
         '#weight' => 120,
         '#value' => t('Add to cart'),
-        '#ajax' => array(
-          'callback' => 'bosa_lineitem_add_extras_to_cart_submit',
-          'progress' => array('type' => 'throbber', 'message' => ''),
-          'wrapper' => 'dc-cart-ajax-form-wrapper',
-        ),
       );
     }
+    $form['node_id'] = array(
+     '#type' => 'textfield',
+     '#access' => 0,
+     '#value' => $form['#action'],
+    );
     return $form;
   }
 }
- 
-/*
- * Callback function for add to cart form
- * used as wrapper for 'commerce_cart_add_to_cart_form_submit'
+
+/**
+ * Custom submit callback
+ * calls the correct cart submit function for the given product
  */
-function bosa_lineitem_add_1st_price_to_cart_submit(&$form, &$form_state){
-  commerce_cart_add_to_cart_form_submit($form, $form_state); 
-  
-  return '<script type="text/javascript">location.reload()</script>';
+function bosa_lineitem_submit(&$form, &$form_state){
+  switch($form_state['clicked_button']['#parents'][0]){
+    case 'submit':
+      commerce_cart_add_to_cart_form_submit($form, $form_state); 
+      break;
+
+    case 'submit2':
+      bosa_lineitem_add_2nd_price_to_cart_submit($form, $form_state);
+      break;
+   
+    case 'submit_extra':
+      bosa_lineitem_add_extras_to_cart_submit($form, $form_state);
+      break;
+  }
 }
 
 /**
@@ -115,9 +129,13 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
 
   field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
 
+  $current_currency = commerce_multicurrency_get_user_currency_code();
+  $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+  $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+  
   // loading the lineitem into an entity wrapper 
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-  $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+  $line_item_wrapper->commerce_unit_price->amount = $converted_price;
 
   // updating the base price
   $line_item_wrapper->commerce_unit_price->data = array(
@@ -125,8 +143,8 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
       0 => array(
         'name' => 'base_price',
         'price' => array(
-          'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
-          'currency_code' => 'dkk'
+          'amount' => $converted_price,
+          'currency_code' => $current_currency
         ),
       ),
     ),
@@ -143,8 +161,6 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
     $line_item,
     0
   );
-  //commerce_cart_add_to_cart_form_submit($form, $form_state); 
-  return '<script type="text/javascript">location.reload()</script>';
 }
 
 /**
@@ -155,14 +171,24 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * @return 
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
+  error_log('add extras to cart');
 
-  $node_path = drupal_lookup_path("source",ltrim($form['#action'], '/'));
+  $path_details = explode('/', $form_state['values']['node_id']);
 
-  $nodeid = explode('/', $node_path);
+  // if the node doesnt have a url alias
+  if($path_details[2] == 'node') {
+    $nodeid[1] = $path_details[3];
+  }
+  else {
+    $node_path = drupal_lookup_path("source",$path_details[2].'/'.urldecode($path_details[3]), $path_details[1]);
+    $nodeid = explode('/', $node_path);
+  }
 
   global $user;
   $order = commerce_cart_order_load($user->uid);
   $node = node_load($nodeid[1]);
+
+  // create a list of products in the cart
   $cart_products = array();
   foreach ($order->commerce_line_items[LANGUAGE_NONE] as $lineitem)
   {
@@ -176,22 +202,26 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
     
     $cart_products[] =  $line_item_product_id;
   }
+  
+  // create list of referenced products
   $referenced_products = array();
   foreach($node->field_reference[LANGUAGE_NONE] as $reference)
   {
     $product_entity = commerce_product_load($reference['product_id']);
-    if( $product_entity->type == "offer" )
+
+    if( $product_entity->type == "offer" || $product_entity->type == "produkt_uden_lager_dato" || $product_entity->type == "produkt_uden_lager"  )
     {
       $referenced_products[] = $reference['product_id'];
     }
   }
 
+  // check if these match
   $result = array_intersect($cart_products, $referenced_products);
   
   switch( count($result) )
   {
     case(0):
-      $return = 'Du har ikke valgt en aktivitet der passer til dette tilkøb<br /><a href="javascript: location.reload()">Tilbage</a>';
+      drupal_set_message(t('You have not chosen an activity that fits this extra product'), 'warning');
       break;
     
     case(1):
@@ -217,17 +247,12 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
         $line_item,
         0
       );
-
-      //commerce_cart_add_to_cart_form_submit($form, $form_state); 
-      $return = '<script type="text/javascript">location.reload()</script>';
       break;
     
     default:
-      $return = 'Du kan ikke købe tilvalgsprodukter hvis du har valgt mere end en dato på samme aktivitet<br /><a href="javascript: location.reload()">Tilbage</a>';
-      
+      drupal_set_message(t('You cannot purchase extra products if you have chosen more than one date for an activity. If you want this, you must create another booking'), 'warning');
       break;
   }
-  return $return;
 }
 
 /**
@@ -250,20 +275,24 @@ function bosa_lineitem_calculate_sell_price($line_item){
 
       if(isset($product->field_2nd_price[LANGUAGE_NONE][0]['amount']))
       {
+        $current_currency = commerce_multicurrency_get_user_currency_code();
+        $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+        $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+
         // loading the lineitem into an entity wrapper
         $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
         
         // updating the unit price
-        $line_item_wrapper->commerce_unit_price->amount = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
-
+        $line_item_wrapper->commerce_unit_price->amount = $converted_price;
+        
         // updating the base price
         $line_item_wrapper->commerce_unit_price->data = array(
           'components' => array(
             0 => array(
               'name' => 'base_price',
               'price' => array(
-                'amount' => $product->field_2nd_price[LANGUAGE_NONE][0]['amount'],
-                'currency_code' => 'DKK'
+                'amount' => $converted_price,
+                'currency_code' => $current_currency
               ),
             ),
           ),
