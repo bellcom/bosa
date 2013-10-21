@@ -1,0 +1,140 @@
+<?php
+/**
+ * adds the ability to select taxonomy term on a map(imagemap)
+ *
+ * @author Thomas Thune Hansen <tth@bellcom.dk>
+ * @copyright bellcom open source aps
+ */
+
+/**
+ * Implements hook_menu()
+ */
+function map_search_menu() {
+  $items['admin/config/user-interface/map_search'] = array(
+    'title' => 'Configure Map Search',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['admin/config/user-interface/map_search/vocabulary'] = array(
+    'title' => t('Vocabularies'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('map_search_admin_page_form'),
+    'file' => 'map_search.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/config/user-interface/map_search/term'] = array(
+    'title' => t('Terms'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('map_search_admin_term_page_form'),
+    'file' => 'map_search.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+function map_search_block_info(){
+  $selected_vocabularies = unserialize(variable_get('map_search_vocabularies'));
+
+  foreach($selected_vocabularies as $vid => $value){
+    $v_entity = entity_load('taxonomy_vocabulary', array($vid));
+    $v_entity = reset($v_entity);
+    
+    $blocks['map_search_vid-'.$vid] = array(
+      'info' => t('Map search block for ').$v_entity->name,
+    );
+  }
+  return $blocks;
+}
+
+function map_search_block_view($delta){
+  drupal_add_js(drupal_get_path('module', 'map_search') . '/map_search.js');
+
+  $maps = '';
+  $image = '';
+  $delta_info = explode('-', $delta);
+
+
+  if(isset($delta_info[1]))
+  {
+    $v_settings = unserialize(variable_get('map_search_vocabulary_settings_'.$delta_info[1]));
+    $selected_links = unserialize(variable_get('map_search_vocabularies_links'));
+
+    if(isset($selected_links[$delta_info[1]])) {
+      $link_to_taxonomy = true;
+    }
+
+    // construct markup for image and map
+    $image = '<img src="' . $v_settings['image']['image'] . '" usemap="#map_search_vid_' . $delta_info[1] . '"/>';
+
+    $maps = '<map id="map_search_vid_' . $delta_info[1] . '" name="map_search_vid_' . $delta_info[1] . '">'; 
+    
+    if(is_array($v_settings['maps']))
+    {
+      foreach($v_settings['maps'] as $tid => $value) {
+        // load term to get name
+        $t_entity = entity_load('taxonomy_term', array($tid));
+        $t_entity = reset($t_entity);
+
+        $url =  $v_settings['urls'][$tid];
+        if($link_to_taxonomy) {
+          $url = drupal_lookup_path('alias', 'taxonomy/term/'.$tid);
+        }
+          
+        $maps .= '<area ' . $value . 'href="' . $url . '" id="term' . $tid . '"  alt="' . $t_entity->name . '"  title="' . $t_entity->name . '"/>'; 
+      }
+    }
+  }
+  $maps .= '</map>';
+
+  $block = array();
+  $block['title'] = "";
+  $block['content'] = $image . $maps; 
+
+  return $block;
+}
+
+/**
+ * fetches all taxonomy terms for use with map search
+ *
+ * @params integer - vid
+ * @return array
+ */
+function map_search_fetch_terms($vid) {
+  $terms = array();
+  $v_tree = taxonomy_get_tree($vid, 0, NULL, TRUE);
+
+  foreach( $v_tree as $key => $value ) {
+    $terms[$value->tid] = array(
+      'name' => $value->name,
+      'tid' => $value->tid,
+    );
+  }
+
+  return $terms;
+}
+
+/**
+ *  fetches vocabularies for use with map search
+ */
+function map_search_vocabulary_fetch() {
+  $vocabularies = array();
+  
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'taxonomy_vocabulary');
+  $result = $query->execute();
+
+  foreach( $result['taxonomy_vocabulary'] as $key => $value) {
+    $v_entity = entity_load('taxonomy_vocabulary', array($key));
+    $v_entity = reset($v_entity);
+    $vocabularies[$v_entity->vid] = array(
+      'name' => $v_entity->name,
+      'vid' => $v_entity->vid,
+      'machine_name' => $v_entity->machine_name,
+    );
+  }
+
+  return $vocabularies;
+}

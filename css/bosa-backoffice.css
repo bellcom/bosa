@@ -1,0 +1,37 @@
+.bosa-category-container {
+  width: 28%;
+  background: #FFF;
+  float: left;
+  padding: 10px;
+  margin: 2% 0 0 2%;
+}
+
+.bosa-icon {
+  height: 32px;
+  width: 32px;
+  display: block;
+}
+
+.bosa-icon-group {
+  background: url(img/icon-group.png);
+}
+
+.bosa-icon-chart-bar {
+  background: url(img/icon-chart-bar.png);
+}
+
+.bosa-icon-cash-register {
+  background: url(img/icon-cash-register.png);
+}
+
+.bosa-icon-layout {
+  background: url(img/icon-layout.png);
+}
+
+.bosa-icon-images {
+  background: url(img/icon-images.png);
+}
+
+.bosa-icon-tools {
+  background: url(img/icon-tools.png);
+}

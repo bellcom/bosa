@@ -1,0 +1,11 @@
+name = Map search
+description = Select taxonomy term with map
+core = 7.x
+
+files[] = map_search.admin.inc
+; Examples - use at will
+;package = Views
+;dependencies[] = views
+;dependencies[] = panels
+;files[] = example.test
+;configure = admin/config/content/example
