@@ -32,6 +32,13 @@ function bosa_reservation_default_rules_configuration(){
             }
           ]
         }
+      },
+      { "mail" : {
+          "to" : [ "site:mail" ],
+          "subject" : "Aflysning af produkt: [commerce-product:sku]",
+          "message" : "[commerce-product:field-cancel-mail-body]",
+          "language" : [ "" ]
+        }
       }
     ]
   }

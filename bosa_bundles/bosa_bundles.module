@@ -135,7 +135,6 @@ function _bosa_bundles_attendees_form($form, &$form_state){
 }
 
 function _bosa_bundles_attendees_validate($form, &$form_state){
-  error_log(__FILE__.':'.__LINE__. print_r($form_state['values'], 1)); // tth@bellcom.dk debugging
   if(($form_state['values']['adults'] + $form_state['values']['children']) == NULL)
   {
     form_set_error('no attendees entered');

@@ -6,7 +6,7 @@
  * to be sold with 2 prices.
  */
 function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
-
+  
   if(strstr($form['#id'], 'commerce-cart-add-to-cart-form'))
   {
     $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
@@ -171,8 +171,6 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * @return 
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
-  error_log('add extras to cart');
-
   $path_details = explode('/', $form_state['values']['node_id']);
 
   // if the node doesnt have a url alias
@@ -303,3 +301,42 @@ function bosa_lineitem_calculate_sell_price($line_item){
   }
 }
 
+/**
+ *  Implements hook_commerce_cart_product_remove()
+ *
+ *  Handles extras when removing product
+ */
+function bosa_lineitem_commerce_cart_product_remove($order, $product, $quanity, $line_item) {
+  if(!empty($order->commerce_line_items)){
+
+    // Array for storing lineitems to remove
+    $line_items = array();
+
+    // Initial value, this is the only product with this id
+    $more_products = FALSE;
+
+    // Loop over lineitems
+    foreach($order->commerce_line_items[LANGUAGE_NONE] as $key => $value){
+
+      // Load
+      $line_item = commerce_line_item_load($value['line_item_id']);
+
+      // Is extra product?
+      if(!empty($line_item->field_line_item_ref)){
+        // If product id is match, save id for removal
+        if($line_item->field_line_item_ref[LANGUAGE_NONE][0]['value'] == $product->product_id){
+          $line_items[] = $line_item->line_item_id;
+        }
+        // check if there are other products with this id
+        if($line_item->commerce_product[LANGUAGE_NONE][0]['product_id'] == $product->product_id){
+          $more_products = TRUE;
+        }
+      }
+
+      // If so delete them
+      if(!$more_products){
+        commerce_line_item_delete_multiple($line_items);
+      }
+    }
+  }
+}

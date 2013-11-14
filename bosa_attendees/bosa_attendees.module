@@ -363,9 +363,6 @@ function _bosa_attendees_html($allAttendees, $extraValues) {
  * Function for sending mails to sellers
  */
 function bosa_attendees_send_mail(){
-  // for testing
-  variable_del('bosa_attendees_sent_list_ids');
-
   $ids = variable_get('bosa_attendees_sent_list_ids', array());
   $tomorrow  = date('Y-m-d', strtotime("tomorrow"));
 
@@ -376,62 +373,63 @@ function bosa_attendees_send_mail(){
    ->fieldCondition('field_offer_dato', 'value', $tomorrow .' 23:59:59', '<'); 
 
   $products = reset($productsQuery->execute());
+
   if($products){
-  //loop over, fetch attendees and send mail
-  foreach($products as $product)
-  {
-
-    $entity = reset(entity_load('commerce_product', array($product->product_id)));
-
-    // Get list of lineitems
-    // We dont want to send mails to sellers if they havent sold anything
-    $lineItemQuery = new EntityFieldQuery();
-    $lineItemQuery->entityCondition('entity_type', 'commerce_line_item')
-    ->propertyCondition('line_item_label', $entity->sku, '='); 
-
-    $lineItems = $lineItemQuery->execute();
-
-    if(
-      !empty($lineItems) 
-      &&
-      isset($entity->field_seller_email[LANGUAGE_NONE][0]['email']) 
-      &&
-      !in_array($entity->product_id, $ids)
-    )
+    //loop over, fetch attendees and send mail
+    foreach($products as $product)
     {
-      global $base_url;
 
-      $key = md5($entity->sku);
-      $attendees = 'Du kan se deltagerlisten her: '. strip_tags($base_url) .'/attendees/'. $entity->product_id .'/'.$key ;
+      $entity = reset(entity_load('commerce_product', array($product->product_id)));
 
-      $email = $entity->field_seller_email[LANGUAGE_NONE][0]['email'];
-      $module = 'bosa_attendees';
-      $key = 'key';
-      $language = language_default();
-      $params = array();
-      $from = NULL;
-      $send = FALSE;
+      // Get list of lineitems
+      // We dont want to send mails to sellers if they havent sold anything
+      $lineItemQuery = new EntityFieldQuery();
+      $lineItemQuery->entityCondition('entity_type', 'commerce_line_item')
+      ->propertyCondition('line_item_label', $entity->sku, '='); 
 
-      // build mail
-      $message = drupal_mail($module, $key, $email, $language, $params, $from, $send);
-      //$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
-      $message['subject'] = 'Deltagerliste: ' . $entity->sku;
-      $message['body'][] = $attendees;
+      $lineItems = $lineItemQuery->execute();
 
-      // Retrieve the responsible implementation for this message.
-      $system = drupal_mail_system($module, $key);
+      if(
+        !empty($lineItems)
+        &&
+        isset($entity->field_seller_email[LANGUAGE_NONE][0]['email']) 
+        &&
+        !in_array($entity->product_id, $ids)
+      )
+      {
+        global $base_url;
 
-      // Format the message body.
-      $message = $system->format($message);
+        $key = md5($entity->sku);
+        $attendees = 'Du kan se deltagerlisten her: '. strip_tags($base_url) .'/attendees/'. $entity->product_id .'/'.$key ;
 
-      // Send e-mail.
-      $message['result'] = $system->mail($message);
+        $email = $entity->field_seller_email[LANGUAGE_NONE][0]['email'];
+        $module = 'bosa_attendees';
+        $key = 'key';
+        $language = language_default();
+        $params = array();
+        $from = NULL;
+        $send = FALSE;
 
-      //error_log(__FILE__.':'.__LINE__. print_r($message, 1)); // tth@bellcom.dk debugging
-      $ids[] = $entity->product_id;
+        // build mail
+        $message = drupal_mail($module, $key, $email, $language, $params, $from, $send);
+        //$message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed';
+        $message['subject'] = 'Deltagerliste: ' . $entity->sku;
+        $message['body'][] = $attendees;
 
+        // Retrieve the responsible implementation for this message.
+        $system = drupal_mail_system($module, $key);
+
+        // Format the message body.
+        $message = $system->format($message);
+
+        // Send e-mail.
+        $message['result'] = $system->mail($message);
+
+        //error_log(__FILE__.':'.__LINE__. print_r($message, 1)); // tth@bellcom.dk debugging
+        $ids[] = $entity->product_id;
+
+      }
     }
+    variable_set('bosa_attendees_sent_list_ids', $ids);
   }
-  variable_set('bosa_attendees_sent_list_ids', $ids);
-}
 }

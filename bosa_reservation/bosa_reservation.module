@@ -230,12 +230,15 @@ function bosa_reservation_cancel_reservations() {
   // EntityFieldQuery and mySQL 'NOW()' doesnt seem to be friends
   $time = date('Y-m-d H:m:s');
 
+  $yesterday = date('Y-m-d H:m:s', strtotime('yesterday'));
+
   // fetch products between the activity date/time and last reservation date/time
   $query = new EntityFieldQuery();
   $result = $query->entityCondition('entity_type', 'commerce_product')
       ->propertyCondition('type', 'offer')
       ->propertyCondition('status', 1)
-      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $time, '<') 
+      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $time, '<')
+      ->fieldCondition('field_dato_og_tidspunkt_for_sids', 'value', $yesterday, '>')
       ->execute();
   
   $product_ids = array_keys(array_shift($result));
@@ -244,6 +247,7 @@ function bosa_reservation_cancel_reservations() {
   {
     $info = _bosa_reservation_product_info($product_id);
 
+    error_log(__FILE__.':'.__LINE__. print_r($info, 1)); // tth@bellcom.dk debugging
     if(empty($info['orders']))
     {
       continue;
@@ -257,9 +261,8 @@ function bosa_reservation_cancel_reservations() {
       // Doin some logging
       watchdog('bosa_reservation', 'cancel product: @product_id', array('@product_id' => $product_id), WATCHDOG_NOTICE);
 
-      // Disable the product, so customers cant buy it again, 
+      // Disable the product, so customers cant buy it,
       // and the refund action is not triggered again
-      
       $product->status = 0;
       commerce_product_save($product);
 
