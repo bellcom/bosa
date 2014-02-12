@@ -532,7 +532,6 @@ function _bosa_bundles_save_bundles($form_state) {
  * Function called by RULES
  **/
 function bosa_bundles_calculate_sell_price($line_item){
-
   if(isset($line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']))
   {
     $node_id = explode('-', $line_item->field_line_item_bundle[LANGUAGE_NONE][0]['value']);

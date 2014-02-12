@@ -365,7 +365,6 @@ function _bosa_attendees_html($allAttendees, $extraValues) {
 function bosa_attendees_send_mail(){
   $ids = variable_get('bosa_attendees_sent_list_ids', array());
   $tomorrow  = date('Y-m-d', strtotime("tomorrow"));
-
   //get product skus for tomorrow
   $productsQuery = new EntityFieldQuery();
   $productsQuery->entityCondition('entity_type', 'commerce_product')
@@ -378,6 +377,7 @@ function bosa_attendees_send_mail(){
     //loop over, fetch attendees and send mail
     foreach($products as $product)
     {
+      $orders = false;
 
       $entity = reset(entity_load('commerce_product', array($product->product_id)));
 
@@ -389,9 +389,21 @@ function bosa_attendees_send_mail(){
 
       $lineItems = $lineItemQuery->execute();
 
+      // Check if there are any orders associated to the lineitems
+      if( !empty($lineItems) ){
+        foreach($lineItems['commerce_line_item'] as $line_item_id => $data){
+          $line_item_entity = commerce_line_item_load($line_item_id);
+          @$order= commerce_order_load($line_item_id->order_id);
+          if($order){
+            $orders = true;
+            break;
+          }
+        }
+      }
+
       if(
-        !empty($lineItems)
-        &&
+      	$orders
+      	&&
         isset($entity->field_seller_email[LANGUAGE_NONE][0]['email']) 
         &&
         !in_array($entity->product_id, $ids)
@@ -421,11 +433,9 @@ function bosa_attendees_send_mail(){
 
         // Format the message body.
         $message = $system->format($message);
-
         // Send e-mail.
         $message['result'] = $system->mail($message);
 
-        //error_log(__FILE__.':'.__LINE__. print_r($message, 1)); // tth@bellcom.dk debugging
         $ids[] = $entity->product_id;
 
       }
