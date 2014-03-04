@@ -1339,6 +1339,70 @@ function bosa_products_feature_field_default_fields() {
     ),
   );
 
+  // Exported field: 'commerce_product-repeated_product-field_seller_email'.
+  $fields['commerce_product-repeated_product-field_seller_email'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_seller_email',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'locked' => '0',
+      'module' => 'email',
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+      ),
+      'translatable' => '0',
+      'type' => 'email',
+    ),
+    'field_instance' => array(
+      'bundle' => 'repeated_product',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'email',
+          'settings' => array(),
+          'type' => 'email_default',
+          'weight' => 5,
+        ),
+        'line_item' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'node_teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'commerce_product',
+      'field_name' => 'field_seller_email',
+      'label' => 'Aktør email',
+      'required' => 0,
+      'settings' => array(
+        'entity_translation_sync' => FALSE,
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'email',
+        'settings' => array(
+          'size' => '60',
+        ),
+        'type' => 'email_textfield',
+        'weight' => '34',
+      ),
+    ),
+  );
+
   // Translatables
   // Included for use with string extractors like potx.
   t('Aflysnings mail');

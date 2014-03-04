@@ -32,3 +32,4 @@ features[field][] = commerce_product-offer_extras_custom-commerce_price
 features[field][] = commerce_product-offer_extras_custom-field_offer_dato
 features[field][] = commerce_product-offer_extras_custom-field_seller_email
 features[field][] = commerce_product-offer_extras_custom-title_field
+features[field][] = commerce_product-repeated_product-field_seller_email
