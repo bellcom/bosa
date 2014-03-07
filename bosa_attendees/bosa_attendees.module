@@ -388,12 +388,13 @@ function bosa_attendees_send_mail(){
       ->propertyCondition('line_item_label', $entity->sku, '='); 
 
       $lineItems = $lineItemQuery->execute();
-
+      
       // Check if there are any orders associated to the lineitems
       if( !empty($lineItems) ){
         foreach($lineItems['commerce_line_item'] as $line_item_id => $data){
+
           $line_item_entity = commerce_line_item_load($line_item_id);
-          @$order= commerce_order_load($line_item_id->order_id);
+          $order = commerce_order_load($line_item_entity->order_id);
           if($order){
             $orders = true;
             break;
