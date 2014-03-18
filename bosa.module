@@ -55,10 +55,33 @@ function bosa_init(){
   }
 }
 
+function bosa_views_pre_render(&$view){
+  $line_item_id = '';
+
+  if ( 
+    $view->name == 'commerce_cart_summary'
+    ||
+    $view->name == 'commerce_cart_form'
+    ||
+    $view->name == 'commerce_cart_block'
+  ){
+    foreach($view->result as $key => $result){
+      $line_item_id_tmp = $result->commerce_line_item_field_data_commerce_line_items_line_item_;
+
+      if($line_item_id == $line_item_id_tmp){
+        unset($view->result[$key]);
+      }
+
+      $line_item_id = $line_item_id_tmp;
+    }
+  }
+}
+
 /**
  * Page callback for sellers
  */
 function bosa_backoffice_page(){
+  global $user;
   $oldstuff = '
     <div class="bosa-backoffice">
       <div class="bosa-category-container">
@@ -89,41 +112,28 @@ function bosa_backoffice_page(){
         <a href="/bosa/voucher/product/all"><i class="bosa-icon bosa-icon-group"></i>Deltagerlister</a>
         <a href="/admin/commerce/reports_products"><i class="bosa-icon bosa-icon-cash-register"></i>Salgsopgørelse</a>
      </div>
-
+     ';
+  if(in_array('Offer admin', $user->roles)){
+    $oldstuff .= '
      <div class="bosa-category-container">
         <h2 class="bosa-category-title">Administration</h2>
         <a href="/admin/bosa"><i class="bosa-icon bosa-icon-tools"></i>BOSA Indstillinger</a>
+        <a href="/bosa/products/permissions"><i class="bosa-icon bosa-icon-tools"></i>Produkt tilladelser</a>
      </div>
     </div>
-';
-
-/*
-<div class="hide">
-    <a href="/node/add/offer ">Produkt visning</a></p>
-
-    <a href="/offerlist">Produkt visninger</a><br><a href="/admin/commerce/reports_products">Salgsopgørelse</a></p>
-
-
-
-
-<div class="pane-content">
-	    <h2>&nbsp;</h2>
-<h2>Tilføj:</h2>
-<p><a href="/admin/commerce/products/add/offer">Produkter</a><br><a href="/admin/commerce/products/add/produkt-uden-lager-dato">Produkt uden lager/dato</a> <br><a href="/admin/commerce/products/add/produkt-uden-lager">Produkt uden lager</a> <br><a href="/admin/commerce/products/add/offer-extras-custom">Tilvalgs produkter</a><br><a href="/node/add/offer ">Produkt visning</a></p>
-<h2>Se:</h2>
-<p><a href="/admin/commerce/products">Produkter</a><br><a href="/offerlist">Produkt visninger</a><br><a href="/admin/commerce/reports_products">Salgsopgørelse</a></p>
-</div>
-</div>
     ';
- */
+  }
+  else {
+    $oldstuff .= '
+     <div class="bosa-category-container">
+        <h2 class="bosa-category-title">Administration</h2>
+        <a href="/bosa/products/permissions"><i class="bosa-icon bosa-icon-tools"></i>Produkt tilladelser</a>
+     </div>
+    </div>
+    ';
+  }
+
   $output = '';
-
-  //ctools_include('plugins');
-  //$bosa = ctools_get_plugins('bosa', 'link');
-
-  //foreach($bosa as $plugin){
-    //$output .= call_user_func($plugin['callback']);
-  //}
 
   return $oldstuff . $output;
 }
