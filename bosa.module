@@ -37,6 +37,49 @@ function bosa_menu() {
 }
 
 /**
+ * Implements hook_menu_alter()
+ */
+function bosa_menu_alter(&$items){
+  // Override commerce cart page.
+  if(isset($items['cart'])){
+    $items['cart'] = array(
+      'page callback' => 'bosa_cart_view_override_commerce_cart_view',
+    ) + $items['cart'];
+  }
+}
+
+/**
+ * Pagecallback for commerce cart override
+ */
+function bosa_cart_view_override_commerce_cart_view(){
+  global $user;
+
+  // Default to displaying an empty message.
+  $content = theme('commerce_cart_empty_page');
+
+  // First check to make sure we have a valid order.
+  if ($order = commerce_cart_order_load($user->uid)) {
+      $wrapper = entity_metadata_wrapper('commerce_order', $order);
+
+      // Only show the cart form if we found product line items.
+      if (commerce_line_items_quantity($wrapper->commerce_line_items, commerce_product_line_item_types()) > 0) {
+
+        // Add the form for editing the cart contents.
+        $content = commerce_embed_view('bosa_shopping_cart_form', 'default', array($order->order_id), 'cart');
+        if (!empty($content)) {
+          drupal_add_css(drupal_get_path('module', 'commerce_cart') . '/theme/commerce_cart.theme.css');
+        }
+      }
+    }
+    else {
+      // Fallback to checkout
+      drupal_goto('checkout');
+    }
+
+  return $content;
+}
+
+/**
  * Implements hook_permission()
  */
 function bosa_permission() {
@@ -61,11 +104,11 @@ function bosa_views_pre_render(&$view){
   $line_item_id = '';
 
   if (
-    $view->name == 'bosa_commerce_cart_summary'
+    $view->name == 'bosa_shopping_cart_summary'
     ||
-    $view->name == 'bosa_commerce_cart_form'
+    $view->name == 'bosa_shopping_cart_form'
     ||
-    $view->name == 'bosa_commerce_cart_block'
+    $view->name == 'bosa_shopping_cart_block'
   ){
     foreach($view->result as $key => $result){
       $line_item_id_tmp = $result->commerce_line_item_field_data_commerce_line_items_line_item_;
