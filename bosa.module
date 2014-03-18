@@ -9,6 +9,8 @@
  * @copyright 2012 bellcom open source aps
  */
 
+include_once 'bosa.features.inc';
+
 function bosa_menu() {
   $items = array();
 
@@ -58,12 +60,12 @@ function bosa_init(){
 function bosa_views_pre_render(&$view){
   $line_item_id = '';
 
-  if ( 
-    $view->name == 'commerce_cart_summary'
+  if (
+    $view->name == 'bosa_commerce_cart_summary'
     ||
-    $view->name == 'commerce_cart_form'
+    $view->name == 'bosa_commerce_cart_form'
     ||
-    $view->name == 'commerce_cart_block'
+    $view->name == 'bosa_commerce_cart_block'
   ){
     foreach($view->result as $key => $result){
       $line_item_id_tmp = $result->commerce_line_item_field_data_commerce_line_items_line_item_;
@@ -159,9 +161,8 @@ function bosa_cron() {
   $expiretime = time() - '3600';
 
   $result = db_delete('cache_form')
-	->condition('created', $expiretime, '<')
-	->execute();
-
+    ->condition('created', $expiretime, '<')
+    ->execute();
 
   /*
    * Automated abandoned carts cleanup
@@ -318,105 +319,3 @@ function bosa_popular_offers() {
   }
   return $content->data;
 }
-
-/**
- * Function used to calculate and save stock updates
- *
- * Uses $_SESSION['bosa'] to temporarily store info about
- * stock changes
- * The function can be called multiple times during updating
- * an order, therefore the function appends the order id
- * array accordingly.
- *
- * @access public
- * @param
- *  $after: object, containing lineitem info
- *  $before: object, containing lineitem info
- *  $arg: argument for action
- * @return
- *  nothing
- *
- * */
-function bosa_stock_adjust($after, $before, $arg) {
-  //  error_log(print_r($after, 1));
-  if (empty($after->log)) {
-    //    error_log("update stock");
-    $order = $after->order_id;
-    $sku = $after->line_item_label;
-    switch ($arg) {
-      case "update":
-        $qty = (int) -($after->quantity - round($before->quantity));
-        break;
-
-      case "delete":
-        $qty = (int) round($after->quantity);
-        break;
-
-      case "add":
-        $qty = (int) -$after->quantity;
-        break;
-    }
-
-    if (!isset($_SESSION['bosa'])) {
-      $_SESSION['bosa'] = array();
-    }
-    if (!isset($_SESSION['bosa'][$order])) {
-      $_SESSION['bosa'][$order] = array();
-    }
-    $i = sizeof($_SESSION['bosa'][$order]);
-    $i++;
-    $_SESSION['bosa'][$order][$i] = array('sku' => $sku, 'qty' => $qty);
-  }
-}
-
-/**
- * Function for saving calculated stockchanges
- *
- * Uses $_SESSION['bosa'] array, if the array
- * contains an array with the current commerce order
- * id the stock update is saved. Afterwards the array
- * with the order id is unset.
- *
- * @access public
- * @param
- *  $arg: object containing commerce order
- * @return
- *  nothing
- * */
-function bosa_stock_adjust_save($arg) {
-  if (isset($_SESSION['bosa'][$arg->order_id])) {
-    foreach ($_SESSION['bosa'][$arg->order_id] as $item) {
-      $product = commerce_product_load_by_sku($item['sku']);
-
-      $wrapper = entity_metadata_wrapper('commerce_product', $product);
-
-      $new_stock = $wrapper->commerce_stock->value() + intval($item['qty']);
-      $wrapper->commerce_stock->set($new_stock);
-      $result = $wrapper->save();
-      error_log("updating" . $item['sku'] . "to" . $new_stock);
-    }
-  }
-  unset($_SESSION['bosa'][$arg->order_id]);
-}
-
-function bosa_form_alter(&$form, &$form_state, $form_id) {
-  if($form_id == 'offer_node_form')
-  {
-    global $user;
-    if(!in_array('Offer admin', $user->roles)){
-      $form['options']['status']['#disabled'] = TRUE;
-      $form['options']['status']['#default_value'] = 0;
-    }
-  }
-
-  // Checkout billing/accont information titles did not please, so here we go.
-  if($form_id == 'commerce_checkout_form_review') {
-    $form['checkout_review']['review']['#data']['account']['title'] = t('Your information');
-    unset($form['checkout_review']['review']['#data']['customer_profile_billing']['title']);
-  }
-  if($form_id == 'commerce_product_ui_product_form') {
-    $form['commerce_price'][LANGUAGE_NONE][0]['amount']['#title'] = t('Price');
-  }
-
-}
-
