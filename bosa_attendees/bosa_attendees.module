@@ -395,7 +395,7 @@ function bosa_attendees_send_mail(){
 
           $line_item_entity = commerce_line_item_load($line_item_id);
           $order = commerce_order_load($line_item_entity->order_id);
-          if($order){
+          if($order->status == 'completed'){
             $orders = true;
             break;
           }
