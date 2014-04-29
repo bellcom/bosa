@@ -6,11 +6,11 @@
  * to be sold with 2 prices.
  */
 function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
-  
+
   if(strstr($form['#id'], 'commerce-cart-add-to-cart-form'))
   {
     $commerce_product = commerce_product_load_by_sku($form['line_item_fields']['#entity']->line_item_label);
-    
+
     // if second price fields are set
     if (!empty($commerce_product->field_2nd_price_select))
     {
@@ -92,13 +92,13 @@ function bosa_lineitem_form_alter(&$form, &$form_state, $form_id){
 function bosa_lineitem_submit(&$form, &$form_state){
   switch($form_state['clicked_button']['#parents'][0]){
     case 'submit':
-      commerce_cart_add_to_cart_form_submit($form, $form_state); 
+      commerce_cart_add_to_cart_form_submit($form, $form_state);
       break;
 
     case 'submit2':
       bosa_lineitem_add_2nd_price_to_cart_submit($form, $form_state);
       break;
-   
+
     case 'submit_extra':
       bosa_lineitem_add_extras_to_cart_submit($form, $form_state);
       break;
@@ -110,21 +110,21 @@ function bosa_lineitem_submit(&$form, &$form_state){
  * Also sets comment on line item, used when the price is recalculated
  * by RULES
  * This function is basicly just a rewrite of 'commerce_cart_add_to_cart_form_submit'
- * Return is markup, JS, that refreshes the current page. Jumping through 
+ * Return is markup, JS, that refreshes the current page. Jumping through
  * hoops here....
  *
  * @access public
  * @param
  *  $form
  *  $form_state
- * @return 
+ * @return
  *  string
  **/
 function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
-  
+
   $product_id = $form_state['values']['product_id'];
   $product = commerce_product_load($product_id);
-  
+
   $line_item = commerce_product_line_item_new($product, $form_state['values']['quantity2'], 0);
 
   field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
@@ -132,8 +132,8 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
   $current_currency = commerce_multicurrency_get_user_currency_code();
   $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
   $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
-  
-  // loading the lineitem into an entity wrapper 
+
+  // loading the lineitem into an entity wrapper
   $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
   $line_item_wrapper->commerce_unit_price->amount = $converted_price;
 
@@ -152,7 +152,7 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
 
   // we want to be able to see that this product has been sold with the other price
   // this is used later on when we set the price again
-  $line_item_wrapper->field_line_item_comment = 'Anden pris';  
+  $line_item_wrapper->field_line_item_comment = 'Anden pris';
 
   commerce_line_item_save($line_item);
   // save the lineitem to the order
@@ -167,8 +167,8 @@ function bosa_lineitem_add_2nd_price_to_cart_submit(&$form, &$form_state){
  * Callback function adds line item to cart with reference product
  *
  * @access public
- * @param 
- * @return 
+ * @param
+ * @return
  **/
 function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
   $path_details = explode('/', $form_state['values']['node_id']);
@@ -198,10 +198,10 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
     {
       continue;
     }
-    
+
     $cart_products[] =  $line_item_product_id;
   }
-  
+
   // create list of referenced products
   $referenced_products = array();
   foreach($node->field_reference[LANGUAGE_NONE] as $reference)
@@ -215,13 +215,13 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
 
   // check if these match
   $result = array_intersect($cart_products, $referenced_products);
-  
+
   switch( count($result) )
   {
     case(0):
       drupal_set_message(t('You have not chosen an activity that fits this extra product'), 'warning');
       break;
-    
+
     case(1):
       $product_id_ref = reset( array_intersect($cart_products, $referenced_products));
 
@@ -231,13 +231,13 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
 
       field_attach_submit('commerce_line_item', $line_item, $form['line_item_fields'], $form_state);
 
-      // loading the lineitem into an entity wrapper 
+      // loading the lineitem into an entity wrapper
       $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
 
       // we want to be able to see that this product has been sold with the other price
       // this is used later on when we set the price again
-      $line_item_wrapper->field_line_item_ref = $product_id_ref;  
-      
+      $line_item_wrapper->field_line_item_ref = $product_id_ref;
+
       commerce_line_item_save($line_item);
       // save the lineitem to the order
       $form_state['line_item'] = commerce_cart_product_add(
@@ -246,58 +246,10 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
         0
       );
       break;
-    
+
     default:
       drupal_set_message(t('You cannot purchase extra products if you have chosen more than one date for an activity. If you want this, you must create another booking'), 'warning');
       break;
-  }
-}
-
-/**
- * Reset the product price, when the item has been sold with the 2nd price
- * chosen.
- * Function is called by RULE "calculate_sell_price".
- *
- * @access public
- * @param 
- *   $line_item - commerce line item passed by RULES
- * @return 
- *   nothing
- **/
-function bosa_lineitem_calculate_sell_price($line_item){
-  if(isset($line_item->field_line_item_comment[LANGUAGE_NONE][0]))
-  {
-    if($line_item->field_line_item_comment[LANGUAGE_NONE][0]['value'] == 'Anden pris')
-    {
-      $product = commerce_product_load_by_sku($line_item->line_item_label);
-
-      if(isset($product->field_2nd_price[LANGUAGE_NONE][0]['amount']))
-      {
-        $current_currency = commerce_multicurrency_get_user_currency_code();
-        $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
-        $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
-
-        // loading the lineitem into an entity wrapper
-        $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
-        
-        // updating the unit price
-        $line_item_wrapper->commerce_unit_price->amount = $converted_price;
-        
-        // updating the base price
-        $line_item_wrapper->commerce_unit_price->data = array(
-          'components' => array(
-            0 => array(
-              'name' => 'base_price',
-              'price' => array(
-                'amount' => $converted_price,
-                'currency_code' => $current_currency
-              ),
-            ),
-          ),
-        );
-        commerce_line_item_save($line_item);
-      }
-    }
   }
 }
 
@@ -337,6 +289,55 @@ function bosa_lineitem_commerce_cart_product_remove($order, $product, $quanity, 
       if(!$more_products){
         commerce_line_item_delete_multiple($line_items);
       }
+    }
+  }
+}
+
+//alter the price in list and single product page
+function bosa_lineitem_commerce_product_calculate_sell_price_line_item_alter($line_item){
+  if(isset($line_item->field_line_item_comment[LANGUAGE_NONE][0]))
+  {
+    if($line_item->field_line_item_comment[LANGUAGE_NONE][0]['value'] == 'Anden pris')
+    {
+      $product = commerce_product_load_by_sku($line_item->line_item_label);
+
+      $price = 100; //1 dollar
+      $line_item->commerce_unit_price[LANGUAGE_NONE]['0']['amount']=$price;
+    }
+  }
+}
+
+//alter the price in cart & order
+function bosa_lineitem_commerce_cart_line_item_refresh($line_item, $order_wrapper){
+  if(!empty($line_item->field_line_item_comment) &&
+    $line_item->field_line_item_comment[LANGUAGE_NONE][0]['value'] == 'Anden pris')
+  {
+    $product = commerce_product_load_by_sku($line_item->line_item_label);
+
+    if(isset($product->field_2nd_price[LANGUAGE_NONE][0]['amount']))
+    {
+      $current_currency = commerce_multicurrency_get_user_currency_code();
+      $price = $product->field_2nd_price[LANGUAGE_NONE][0]['amount'];
+      $converted_price = commerce_currency_convert($price, "DKK", $current_currency);
+
+      // loading the lineitem into an entity wrapper
+      $line_item_wrapper = entity_metadata_wrapper('commerce_line_item', $line_item);
+
+      // updating the unit price
+      $line_item_wrapper->commerce_unit_price->amount = $converted_price;
+
+      // updating the base price
+      $line_item_wrapper->commerce_unit_price->data = array(
+        'components' => array(
+          0 => array(
+            'name' => 'base_price',
+            'price' => array(
+              'amount' => $converted_price,
+              'currency_code' => $current_currency
+            ),
+          ),
+        ),
+      );
     }
   }
 }

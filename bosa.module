@@ -24,8 +24,8 @@ function bosa_menu() {
     'file' => 'system.admin.inc',
     'weight' => -5,
   );
-  
-  return $items; 
+
+  return $items;
 }
 /**
  * Implements hook_permission()
@@ -48,8 +48,8 @@ function bosa_cron() {
   $expiretime = time() - '3600';
 
   $result = db_delete('cache_form')
-	->condition('created', $expiretime, '<')
-	->execute();
+    ->condition('created', $expiretime, '<')
+    ->execute();
 
   //
   // Automated abandoned carts cleanup
@@ -183,7 +183,7 @@ function bosa_popular_offers_cron() {
 
   // build html for use in block
   //$content = "<div class=\"popular-header\">" . t('Best-selling events') .  "</div>";
-  
+
   $content = "<div class=\"popular-offers\">";
   foreach ($lineItemArray as $key => $val) {
     $nodeIdStmt = db_query("SELECT nid FROM {node} WHERE title = :title", array(':title' => $key,));
