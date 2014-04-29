@@ -287,25 +287,25 @@ function bosa_feature_views_default_views() {
     'view_order' => 'view_order',
     'order_number_2' => 'view_order',
   );
-  $handler->display->display_options['style_options']['default'] = 'order_number';
+  $handler->display->display_options['style_options']['default'] = 'created';
   $handler->display->display_options['style_options']['info'] = array(
     'order_number_1' => array(
-      'sortable' => 1,
+      'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
     ),
     'order_number' => array(
-      'sortable' => 1,
-      'default_sort_order' => 'desc',
+      'sortable' => 0,
+      'default_sort_order' => 'asc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
     ),
     'created' => array(
       'sortable' => 1,
-      'default_sort_order' => 'asc',
+      'default_sort_order' => 'desc',
       'align' => '',
       'separator' => '',
       'empty_column' => 0,
