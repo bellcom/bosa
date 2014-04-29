@@ -247,7 +247,6 @@ function bosa_reservation_cancel_reservations() {
   {
     $info = _bosa_reservation_product_info($product_id);
 
-    error_log(__FILE__.':'.__LINE__. print_r($info, 1)); // tth@bellcom.dk debugging
     if(empty($info['orders']))
     {
       continue;
@@ -313,7 +312,7 @@ function bosa_reservation_refund_process($cancel_info){
         commerce_line_item_delete_multiple($info['line_item_ids']);
         commerce_line_item_delete_multiple($info['referenced_line_item_ids']);
       }
-
+      
       bosa_reservation_save_info($product_id, $order_id, $info);
       
       // Remember order_id
@@ -328,7 +327,7 @@ function bosa_reservation_refund_process($cancel_info){
  *
  * Save product info to db
  *
- * @params
+ * @param
  *  product_id
  *  order_id
  *  info array
@@ -389,34 +388,41 @@ function bosa_reservation_refund_payment($order, $amount){
   $transaction = commerce_payment_fetch_last_payment_transaction($order->order_id);
   $payment_method = commerce_payment_method_instance_load($transaction->instance_id);
 
-  $qp = new Quickpay($payment_method['settings']);
-  $txn = $qp->transaction($transaction->remote_id);
+  try {
+    $qp = new Quickpay($payment_method['settings']);
+    $txn = $qp->transaction($transaction->remote_id);
 
-  // QuickPay refund amount
-  $txn_amount = commerce_currency_amount_to_decimal($amount, $transaction->currency_code);
-  $txn->refund($txn_amount);
+    // QuickPay refund amount
+    $txn_amount = commerce_currency_amount_to_decimal($amount, $transaction->currency_code);
+    $txn->refund($txn_amount);
 
-  $transaction->amount = -$amount;
-  $transaction->payload[REQUEST_TIME] = $txn;
+    $transaction->amount = -$amount;
+    $transaction->payload[REQUEST_TIME] = $txn;
 
-  if ($txn->success()) {
-    // Doin some logging
-    watchdog('bosa_reservation', 'refund completed order: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
-    
-    $transaction->data = 'bosa_reservation_refund';
-    $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
-    $success = TRUE;
+    if ($txn->success()) {
+      // Doin some logging
+      watchdog('bosa_reservation', 'refund completed order: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
+      
+      $transaction->data = 'bosa_reservation_refund';
+      $transaction->status = COMMERCE_PAYMENT_STATUS_SUCCESS;
+      $success = TRUE;
+    }
+    else {
+      // Doin some logging
+      watchdog('bosa_reservation', 'refund failed order_id: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
+      
+      $transaction->status = COMMERCE_PAMENT_STATUS_FAILURE;
+      $success = FALSE;
+    }
+
+    // Save transaction
+    commerce_payment_transaction_save($transaction);
   }
-  else {
-    // Doin some logging
+  catch (QuickpayException $e){
     watchdog('bosa_reservation', 'refund failed order_id: @order', array('@order' => $order->order_id), WATCHDOG_NOTICE);
-    
-    $transaction->status = COMMERCE_PAMENT_STATUS_FAILURE;
     $success = FALSE;
   }
 
-  // Save transaction
-  commerce_payment_transaction_save($transaction);
   return $success;
 }
 
