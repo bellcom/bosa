@@ -201,7 +201,7 @@ function bosa_ctools_plugin_type() {
 function bosa_cron() {
   // For some reason the cache_form, grows to enourmous sizes,
   // we clean up a little earlier that Drupal normally does
-  $expiretime = time() - '3600';
+  $expiretime = time() - 360;
 
   $result = db_delete('cache_form')
     ->condition('created', $expiretime, '<')
@@ -212,7 +212,7 @@ function bosa_cron() {
    */
 
   // We want to fetch the carts older than 24hours
-  $expiredOrder = time() - '86400';
+  $expiredOrder = time() - 86400;
 
   // Prepare statement to get order_ids
   $oldOrdersStmt = db_query("SELECT order_id FROM {commerce_order} WHERE status != :status AND changed < :changed", array(
