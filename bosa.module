@@ -133,6 +133,7 @@ function bosa_backoffice_page(){
       <h2 class="bosa-category-title">Produkter</h2>
       <i class="bosa-icon bosa-icon-images"></i>
         <h3 class="bosa-category-subtitle">Tilføj</h3>
+        <a href="/admin/commerce/products/add/bosa-produkt">BOSA Produkter</a><br>
         <a href="/admin/commerce/products/add/offer">Produkter</a><br>
         <a href="/admin/commerce/products/add/produkt-uden-lager-dato">Produkt uden lager/dato</a> <br>
         <a href="/admin/commerce/products/add/produkt-uden-lager">Produkt uden lager</a> <br>
@@ -150,6 +151,8 @@ function bosa_backoffice_page(){
 
         <h3 class="bosa-category-subtitle">Se</h3>
         <a href="/offerlist">Produkt visninger</a><br>
+        <h2 class="bosa-category-title">Iframe Builder</h2>
+        <a href="/iframe_builder">Build en iframe</a><br>
      </div>
 
      <div class="bosa-category-container">
