@@ -210,6 +210,7 @@ function bosa_views_default_views() {
   $handler->display->display_options['arguments']['order_id']['table'] = 'commerce_order';
   $handler->display->display_options['arguments']['order_id']['field'] = 'order_id';
   $handler->display->display_options['arguments']['order_id']['default_action'] = 'default';
+  $handler->display->display_options['arguments']['order_id']['exception']['title'] = 'Alle';
   $handler->display->display_options['arguments']['order_id']['default_argument_type'] = 'commerce_cart_current_cart_order_id';
   $handler->display->display_options['arguments']['order_id']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['order_id']['summary']['format'] = 'default_summary';
@@ -343,11 +344,20 @@ function bosa_views_default_views() {
   $handler->display->display_options['fields']['line_item_title']['alter']['text'] = '[title_field]: [line_item_title]';
   $handler->display->display_options['fields']['line_item_title']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['line_item_title']['alter']['path'] = '[commerce_display_path]';
+  /* Felt: Commerce Line item: bosa_selected_date */
+  $handler->display->display_options['fields']['field_bosa_selected_date']['id'] = 'field_bosa_selected_date';
+  $handler->display->display_options['fields']['field_bosa_selected_date']['table'] = 'field_data_field_bosa_selected_date';
+  $handler->display->display_options['fields']['field_bosa_selected_date']['field'] = 'field_bosa_selected_date';
+  $handler->display->display_options['fields']['field_bosa_selected_date']['relationship'] = 'commerce_line_items_line_item_id';
+  $handler->display->display_options['fields']['field_bosa_selected_date']['label'] = '';
+  $handler->display->display_options['fields']['field_bosa_selected_date']['exclude'] = TRUE;
+  $handler->display->display_options['fields']['field_bosa_selected_date']['element_label_colon'] = FALSE;
   /* Felt: Commerce Product: Dato */
   $handler->display->display_options['fields']['field_offer_dato']['id'] = 'field_offer_dato';
   $handler->display->display_options['fields']['field_offer_dato']['table'] = 'field_data_field_offer_dato';
   $handler->display->display_options['fields']['field_offer_dato']['field'] = 'field_offer_dato';
   $handler->display->display_options['fields']['field_offer_dato']['relationship'] = 'commerce_product_product_id';
+  $handler->display->display_options['fields']['field_offer_dato']['empty'] = '[field_bosa_selected_date]';
   $handler->display->display_options['fields']['field_offer_dato']['settings'] = array(
     'format_type' => 'short',
     'fromto' => 'both',
@@ -427,7 +437,7 @@ function bosa_views_default_views() {
 
   /* Display: Defaults */
   $handler = $view->new_display('default', 'Defaults', 'default');
-  $handler->display->display_options['title'] = 'Shopping cart';
+  $handler->display->display_options['title'] = 'Indkøbskurv';
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['use_more_text'] = 'mere';
   $handler->display->display_options['access']['type'] = 'none';

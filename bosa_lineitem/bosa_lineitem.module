@@ -209,7 +209,7 @@ function bosa_lineitem_add_extras_to_cart_submit(&$form, &$form_state){
   {
     $product_entity = commerce_product_load($reference['product_id']);
 
-    if( $product_entity->type == "offer" || $product_entity->type == "produkt_uden_lager_dato" || $product_entity->type == "produkt_uden_lager"  )
+    if( $product_entity->type == "offer" || $product_entity->type == "produkt_uden_lager_dato" || $product_entity->type == "produkt_uden_lager" || $product_entity->type == "bosa_produkt")
     {
       $referenced_products[] = $reference['product_id'];
     }
